@@ -102,7 +102,7 @@ export class OpenAI {
     const resp = await this.request<CompletionRawResponse>({
       url: `/engines/${engineID}/completions`,
       method: 'POST',
-      body: rawRequest
+      body: JSON.stringify(rawRequest)
     })
 
     return {
