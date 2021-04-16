@@ -5,6 +5,12 @@ import {
   CompletionResponse
 } from './types/completion.ts'
 import { EngineResponse, EnginesResponse } from './types/engine.ts'
+import {
+  SearchArgs,
+  SearchRawRequest,
+  SearchRawResponse,
+  SearchResponse
+} from './types/search.ts'
 import { MAIN_URL } from './types/url.ts'
 
 export class OpenAI {
@@ -116,5 +122,32 @@ export class OpenAI {
         finishReason: choice.finish_reason
       }))
     }
+  }
+
+  async createSearch(
+    engineID: string,
+    args: SearchArgs
+  ): Promise<SearchResponse[]> {
+    if (args.documents === undefined && args.file === undefined) {
+      throw new Error('Either documents or file need to be specified.')
+    } else if (args.documents !== undefined && args.file !== undefined) {
+      throw new Error('Specifying both documents and file is not allowed.')
+    }
+
+    const rawRequest: SearchRawRequest = {
+      documents: args.documents,
+      file: args.file,
+      query: args.query,
+      max_rerank: args.maxRerank,
+      return_metadata: args.returnMetadata
+    }
+
+    const resp = await this.request<SearchRawResponse>({
+      url: `/engines/${engineID}/search`,
+      method: 'POST',
+      body: JSON.stringify(rawRequest)
+    })
+
+    return resp.data
   }
 }
