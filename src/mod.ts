@@ -1,4 +1,10 @@
 import {
+  ClassificationArgs,
+  ClassificationRawRequest,
+  ClassificationRawResponse,
+  ClassificationResponse
+} from './types/classification.ts'
+import {
   CompletionArgs,
   CompletionRawRequest,
   CompletionRawResponse,
@@ -149,5 +155,46 @@ export class OpenAI {
     })
 
     return resp.data
+  }
+
+  async createClassification(
+    engineID: string,
+    args: ClassificationArgs
+  ): Promise<ClassificationResponse> {
+    if (args.examples === undefined && args.file === undefined) {
+      throw new Error('Either examples or file need to be specified.')
+    } else if (args.examples !== undefined && args.file !== undefined) {
+      throw new Error('Specifying both examples and file is not allowed.')
+    }
+
+    const rawRequest: ClassificationRawRequest = {
+      model: engineID,
+      query: args.query,
+      examples: args.examples,
+      file: args.file,
+      labels: args.labels,
+      search_model: args.searchModel,
+      temperature: args.temperature,
+      logprobs: args.logprobs,
+      max_examples: args.maxExamples,
+      logit_bias: args.logitBias,
+      return_prompt: args.returnPrompt,
+      return_metadata: args.returnMetadata,
+      expend: args.expend
+    }
+
+    const resp = await this.request<ClassificationRawResponse>({
+      url: `/classifications`,
+      method: 'POST',
+      body: JSON.stringify(rawRequest)
+    })
+
+    return {
+      completion: resp.completion,
+      label: resp.label,
+      model: resp.model,
+      searchModel: resp.search_model,
+      selectedExamples: resp.selected_examples
+    }
   }
 }
