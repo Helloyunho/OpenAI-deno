@@ -17,6 +17,7 @@ import {
   CompletionResponse
 } from './types/completion.ts'
 import { EngineResponse, EnginesResponse } from './types/engine.ts'
+import { File, FileRaw, FilesRawResponse } from './types/file.ts'
 import {
   SearchArgs,
   SearchRawRequest,
@@ -247,5 +248,90 @@ export class OpenAI {
       searchModel: resp.search_model,
       selectedDocuments: resp.selected_documents
     }
+  }
+
+  async getFiles(): Promise<File[]> {
+    const resp = await this.request<FilesRawResponse>({
+      url: `/files`,
+      method: 'GET'
+    })
+
+    return resp.data.map((d) => ({
+      id: d.id,
+      bytes: d.bytes,
+      createdAt: d.created_at,
+      filename: d.filename,
+      format: d.format,
+      purpose: d.purpose
+    }))
+  }
+
+  async uploadFile(
+    file:
+      | {
+          name: string
+          content: Blob | Uint8Array
+        }
+      | string,
+    purpose: string
+  ): Promise<File> {
+    const formData = new FormData()
+    let name: string
+    let fileBlob: Blob
+    if (typeof file === 'string') {
+      name = file
+      const fileArray = await Deno.readFile(file)
+      fileBlob = new Blob([fileArray])
+    } else {
+      name = file.name
+      fileBlob =
+        file.content instanceof Uint8Array
+          ? new Blob([file.content])
+          : file.content
+    }
+
+    formData.append('file', fileBlob, name)
+    formData.append('purpose', purpose)
+
+    const resp = await this.request<FileRaw>({
+      url: `/files`,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      },
+      body: formData
+    })
+
+    return {
+      id: resp.id,
+      bytes: resp.bytes,
+      createdAt: resp.created_at,
+      filename: resp.filename,
+      format: resp.format,
+      purpose: resp.purpose
+    }
+  }
+
+  async getFile(fileID: string): Promise<File> {
+    const resp = await this.request<FileRaw>({
+      url: `/files/${fileID}`,
+      method: 'GET'
+    })
+
+    return {
+      id: resp.id,
+      bytes: resp.bytes,
+      createdAt: resp.created_at,
+      filename: resp.filename,
+      format: resp.format,
+      purpose: resp.purpose
+    }
+  }
+
+  async deleteFile(fileID: string): Promise<void> {
+    await this.request<FileRaw>({
+      url: `/files/${fileID}`,
+      method: 'DELETE'
+    })
   }
 }
