@@ -1,4 +1,10 @@
 import {
+  AnswerArgs,
+  AnswerRawRequest,
+  AnswerRawResponse,
+  AnswerResponse
+} from './types/answer.ts'
+import {
   ClassificationArgs,
   ClassificationRawRequest,
   ClassificationRawResponse,
@@ -195,6 +201,51 @@ export class OpenAI {
       model: resp.model,
       searchModel: resp.search_model,
       selectedExamples: resp.selected_examples
+    }
+  }
+
+  async createAnswer(
+    engineID: string,
+    args: AnswerArgs
+  ): Promise<AnswerResponse> {
+    if (args.documents === undefined && args.file === undefined) {
+      throw new Error('Either documents or file need to be specified.')
+    } else if (args.documents !== undefined && args.file !== undefined) {
+      throw new Error('Specifying both documents and file is not allowed.')
+    }
+
+    const rawRequest: AnswerRawRequest = {
+      model: engineID,
+      question: args.question,
+      examples: args.examples,
+      examples_context: args.examplesContext,
+      file: args.file,
+      documents: args.documents,
+      search_model: args.searchModel,
+      max_rerank: args.maxRerank,
+      temperature: args.temperature,
+      logprobs: args.logprobs,
+      max_tokens: args.maxTokens,
+      stop: args.stop,
+      n: args.count,
+      logit_bias: args.logitBias,
+      return_prompt: args.returnPrompt,
+      return_metadata: args.returnMetadata,
+      expend: args.expend
+    }
+
+    const resp = await this.request<AnswerRawResponse>({
+      url: `/answers`,
+      method: 'POST',
+      body: JSON.stringify(rawRequest)
+    })
+
+    return {
+      answers: resp.answers,
+      completion: resp.completion,
+      model: resp.model,
+      searchModel: resp.search_model,
+      selectedDocuments: resp.selected_documents
     }
   }
 }
