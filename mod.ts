@@ -9,5 +9,5 @@ export type {
   CompletionResponse
 } from './src/types/completion.ts'
 export type { EngineResponse, EnginesResponse } from './src/types/engine.ts'
-export type { File } from './src/types/File.ts'
+export type { File } from './src/types/file.ts'
 export type { SearchArgs, SearchResponse } from './src/types/search.ts'
