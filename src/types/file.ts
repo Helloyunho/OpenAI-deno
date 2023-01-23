@@ -24,8 +24,3 @@ export interface FilesRawResponse {
   object: string
   data: FileRaw[]
 }
-
-export interface FilesResponse {
-  object: string
-  data: File[]
-}

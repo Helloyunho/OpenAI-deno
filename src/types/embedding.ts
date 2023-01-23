@@ -6,10 +6,6 @@ export interface CreateEmbeddingsRawRequest {
   user?: string
 }
 
-export interface CreateEmbeddingsParams {
-  user?: string
-}
-
 export interface CreateEmbeddingsRawResponse {
   object: string
   model: string
