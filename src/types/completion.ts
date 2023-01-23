@@ -34,10 +34,30 @@ export interface CreateCompletionParams {
    * @default 16
    */
   maxTokens?: number
+  /**
+   * What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.
+
+   * OpenAI generally recommend altering this or `topP` but not both.
+   */
   temperature?: number
+  /**
+   * An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
+
+   * OpenAI generally recommend altering this or `temperature` but not both.
+   */
   topP?: number
+  /**
+   * How many completions to generate for each prompt.
+
+   * @note Because this parameter generates many completions, it can quickly consume your token quota. Use carefully and ensure that you have reasonable settings for `maxTokens` and `stop`.
+   */
   count?: number
   // stream?: boolean
+  /**
+   * Include the log probabilities on the logprobs most likely tokens, as well the chosen tokens. For example, if logprobs is 5, the API will return a list of the 5 most likely tokens. The API will always return the logprob of the sampled token, so there may be up to logprobs+1 elements in the response.
+
+The maximum value for logprobs is 5. If you need more than this, please contact us through our Help center and describe your use case.
+   */
   logprobs?: number | null
   echo?: boolean
   stop?: string | string[] | null

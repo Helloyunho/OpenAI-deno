@@ -22,9 +22,25 @@ export interface CreateEditRawResponse {
 }
 
 export interface CreateEditParams {
+  /**
+   * The input text to use as a starting point for the edit.
+   */
   input?: string
-  n?: number
+  /**
+   * How many edits to generate for the input and instruction.
+   */
+  count?: number
+  /**
+   * What [sampling temperature](https://towardsdatascience.com/how-to-sample-from-language-models-682bceb97277) to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.
+
+   * OpenAI generally recommend altering this or `topP` but not both.
+   */
   temperature?: number
+  /**
+   * An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
+
+   * OpenAI generally recommend altering this or `temperature` but not both.
+   */
   topP?: number
 }
 

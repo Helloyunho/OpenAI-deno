@@ -23,7 +23,6 @@ import {
   CreateEditResponse
 } from './types/edit.ts'
 import {
-  CreateEmbeddingsParams,
   CreateEmbeddingsRawRequest,
   CreateEmbeddingsRawResponse,
   CreateEmbeddingsResponse
@@ -251,6 +250,10 @@ export class OpenAI {
     }
   }
 
+  /**
+   * Delete a fine-tuned model. You must have the Owner role in your organization.
+   * @param modelID The model to delete
+   */
   async deleteModel(modelID: string): Promise<DeleteResponse> {
     return await this.request<DeleteResponse>({
       method: 'DELETE',
@@ -258,6 +261,12 @@ export class OpenAI {
     })
   }
 
+  /**
+   * Creates a completion for the provided prompt and parameters
+   * @param model ID of the model to use. You can use the {@link OpenAI#listModels} to see all of your available models, or see OpenAI's [Model overview](https://beta.openai.com/docs/models/overview) for descriptions of them.
+   * @param params Optional parameters for the API.
+   * @returns Completion results.
+   */
   async createCompletion(
     model: string,
     params: CreateCompletionParams
@@ -432,6 +441,13 @@ export class OpenAI {
     }
   }
 
+  /**
+   * Creates a new edit for the provided input, instruction, and parameters
+   * @param model ID of the model to use. You can use the {@link OpenAI#listModels} to see all of your available models, or see OpenAI's [Model overview](https://beta.openai.com/docs/models/overview) for descriptions of them.
+   * @param instruction The instruction that tells the model how to edit the prompt.
+   * @param params Optional parameters for the API.
+   * @returns Edited texts.
+   */
   async createEdit(
     model: string,
     instruction: string,
@@ -441,7 +457,7 @@ export class OpenAI {
       model,
       instruction,
       input: params.input,
-      n: params.n,
+      n: params.count,
       temperature: params.temperature,
       top_p: params.topP
     }
@@ -469,13 +485,19 @@ export class OpenAI {
     }
   }
 
+  /**
+   * Creates an image given a prompt.
+   * @param prompt A text description of the desired image(s). The maximum length is 1000 characters.
+   * @param params Optional parameters for the API.
+   * @returns URLs(or base64 encoded) of the generated images.
+   */
   async createImage(
     prompt: string,
     params: CreateImageParams
   ): Promise<CreateImageResponse> {
     const rawRequest: CreateImageRawRequest = {
       prompt,
-      n: params.n,
+      n: params.count,
       size: params.size,
       response_format: params.responseFormat,
       user: params.user
@@ -493,6 +515,13 @@ export class OpenAI {
     }
   }
 
+  /**
+   * Creates an edited or extended image given an original image and a prompt.
+   * @param image The image(or image path) to edit. Must be a valid PNG file, less than 4MB, and square. If mask is not provided, image must have transparency, which will be used as the mask.
+   * @param prompt A text description of the desired image(s). The maximum length is 1000 characters.
+   * @param params Optional parameters for the API.
+   * @returns URLs(or base64 encoded) of edited images.
+   */
   async createImageEdit(
     image: string | BlobPart,
     prompt: string,
@@ -520,8 +549,8 @@ export class OpenAI {
       }
       formData.append('mask', fileBlob)
     }
-    if (params.n !== undefined) {
-      formData.append('n', params.n.toString())
+    if (params.count !== undefined) {
+      formData.append('n', params.count.toString())
     }
     if (params.size !== undefined) {
       formData.append('size', params.size.toString())
@@ -545,6 +574,12 @@ export class OpenAI {
     }
   }
 
+  /**
+   * Creates a variation of a given image.
+   * @param image The image(or image path) to use as the basis for the variation(s). Must be a valid PNG file, less than 4MB, and square.
+   * @param params Optional parameters for the API.
+   * @returns URLs(or base64 encoded) of the generated images.
+   */
   async createImageVariation(
     image: string | BlobPart,
     params: CreateImageParams
@@ -560,8 +595,8 @@ export class OpenAI {
 
     formData.append('image', fileBlob)
 
-    if (params.n !== undefined) {
-      formData.append('n', params.n.toString())
+    if (params.count !== undefined) {
+      formData.append('n', params.count.toString())
     }
     if (params.size !== undefined) {
       formData.append('size', params.size.toString())
@@ -585,15 +620,22 @@ export class OpenAI {
     }
   }
 
+  /**
+   * Creates an embedding vector representing the input text.
+   * @param model ID of the model to use. You can use the {@link OpenAI#listModels} to see all of your available models, or see OpenAI's [Model overview](https://beta.openai.com/docs/models/overview) for descriptions of them.
+   * @param input Input text to get embeddings for, encoded as a string or array of tokens. To get embeddings for multiple inputs in a single request, pass an array of strings or array of token arrays. Each input must not exceed 8192 tokens in length.
+   * @param user A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse. [Learn more](https://beta.openai.com/docs/guides/safety-best-practices/end-user-ids).
+   * @returns Embeddings for the input text.
+   */
   async createEmbeddings(
     model: string,
     input: string | string[] | number[][],
-    params: CreateEmbeddingsParams
+    user?: string
   ): Promise<CreateEmbeddingsResponse> {
     const rawRequest: CreateEmbeddingsRawRequest = {
       model,
       input,
-      user: params.user
+      user
     }
 
     const resp = await this.request<CreateEmbeddingsRawResponse>({
@@ -610,10 +652,17 @@ export class OpenAI {
     }
   }
 
+  /**
+   * Alias for {@link OpenAI#listFiles}. This method is deprecated and will be removed in a future version.
+   */
   async getFiles(): Promise<File[]> {
     return await this.listFiles()
   }
 
+  /**
+   * Returns a list of files that belong to the user's organization.
+   * @returns List of files.
+   */
   async listFiles(): Promise<File[]> {
     const resp = await this.request<FilesRawResponse>({
       url: `/files`,
@@ -632,6 +681,16 @@ export class OpenAI {
     }))
   }
 
+  /**
+   * Upload a file that contains document(s) to be used across various endpoints/features. Currently, the size of all the files uploaded by one organization can be up to 1 GB. Please contact us if you need to increase the storage limit.
+   * @param file Name of the [JSON Lines](https://jsonlines.readthedocs.io/en/latest/) file to be uploaded.
+
+If the `purpose` is set to "fine-tune", each line is a JSON record with "prompt" and "completion" fields representing your [training examples](https://beta.openai.com/docs/guides/fine-tuning/prepare-training-data).
+   * @param purpose The intended purpose of the uploaded documents.
+
+Use "fine-tune" for [Fine-tuning](https://beta.openai.com/docs/api-reference/fine-tunes). This allows us to validate the format of the uploaded file.
+   * @returns The uploaded file.
+   */
   async uploadFile(
     file:
       | {
@@ -677,6 +736,10 @@ export class OpenAI {
     }
   }
 
+  /**
+   * Delete a file.
+   * @param fileID The ID of the file to use for this request
+   */
   async deleteFile(fileID: string): Promise<DeleteResponse> {
     return await this.request<DeleteResponse>({
       url: `/files/${fileID}`,
@@ -684,10 +747,18 @@ export class OpenAI {
     })
   }
 
+  /**
+   * Alias for {@link OpenAI#retrieveFile}. This method is deprecated and will be removed in a future version.
+   */
   async getFile(fileID: string): Promise<File> {
     return await this.retrieveFile(fileID)
   }
 
+  /**
+   * Returns information about a specific file.
+   * @param fileID The ID of the file to use for this request
+   * @returns The file.
+   */
   async retrieveFile(fileID: string): Promise<File> {
     const resp = await this.request<FileRaw>({
       url: `/files/${fileID}`,
@@ -706,6 +777,11 @@ export class OpenAI {
     }
   }
 
+  /**
+   * Returns the contents of the specified file
+   * @param fileID The ID of the file to use for this request
+   * @returns The file contents in {@link Blob}.
+   */
   async retrieveFileContent(fileID: string): Promise<Blob> {
     const resp = await this.request({
       url: `/files/${fileID}/content`,
@@ -716,6 +792,22 @@ export class OpenAI {
     return resp
   }
 
+  /**
+   * Creates a job that fine-tunes a specified model from a given dataset.
+
+Response includes details of the enqueued job including job status and the name of the fine-tuned models once complete.
+
+[Learn more about Fine-tuning](https://beta.openai.com/docs/guides/fine-tuning)
+   * @param trainingFile The ID of an uploaded file that contains training data.
+
+See {@link OpenAI#uploadFile} for how to upload a file.
+
+Your dataset must be formatted as a JSONL file, where each training example is a JSON object with the keys "prompt" and "completion". Additionally, you must upload your file with the purpose `fine-tune`.
+
+See the [fine-tuning guide](https://beta.openai.com/docs/guides/fine-tuning/creating-training-data) for more details.
+   * @param params Optional parameters for the API.
+   * @returns The fine-tune job.
+   */
   async createFineTune(
     trainingFile: File | string,
     params: CreateFineTuneParams
@@ -766,6 +858,10 @@ export class OpenAI {
     }
   }
 
+  /**
+   * List your organization's fine-tuning jobs
+   * @returns The fine-tune jobs.
+   */
   async listFineTunes(): Promise<FineTune[]> {
     const resp = await this.request<{
       data: FineTuneRaw[]
@@ -795,6 +891,13 @@ export class OpenAI {
     }))
   }
 
+  /**
+   * Gets info about the fine-tune job.
+
+[Learn more about Fine-tuning](https://beta.openai.com/docs/guides/fine-tuning)
+   * @param fineTuneID The ID of the fine-tune job
+   * @returns The fine-tune job.
+   */
   async retrieveFineTune(fineTuneID: string): Promise<FineTune> {
     const resp = await this.request<FineTuneRaw>({
       url: `/fine-tunes/${fineTuneID}`,
@@ -822,6 +925,11 @@ export class OpenAI {
     }
   }
 
+  /**
+   * Immediately cancel a fine-tune job.
+   * @param fineTuneID The ID of the fine-tune job to cancel
+   * @returns The canceled fine-tune job.
+   */
   async cancelFineTune(fineTuneID: string): Promise<FineTune> {
     const resp = await this.request<FineTuneRaw>({
       url: `/fine-tunes/${fineTuneID}/cancel`,
@@ -849,6 +957,11 @@ export class OpenAI {
     }
   }
 
+  /**
+   * Get fine-grained status updates for a fine-tune job.
+   * @param fineTuneID The ID of the fine-tune job to get events for.
+   * @returns The fine-tune job's events.
+   */
   async listFineTuneEvents(fineTuneID: string): Promise<FineTuneEvent[]> {
     const resp = await this.request<{
       data: FineTuneEventRaw[]
@@ -865,13 +978,14 @@ export class OpenAI {
     }))
   }
 
-  async deleteFineTune(fineTuneID: string): Promise<DeleteResponse> {
-    return await this.request<DeleteResponse>({
-      url: `/fine-tunes/${fineTuneID}`,
-      method: 'DELETE'
-    })
-  }
+  /**
+   * Classifies if text violates OpenAI's Content Policy
+   * @param input The input text to classify
+   * @param model Two content moderations models are available: `text-moderation-stable` and `text-moderation-latest`.
 
+The default is `text-moderation-latest` which will be automatically upgraded over time. This ensures you are always using our most accurate model. If you use `text-moderation-stable`, we will provide advanced notice before updating the model. Accuracy of `text-moderation-stable` may be slightly lower than for `text-moderation-latest`.
+   * @returns The moderation results.
+   */
   async createModeration(
     input: string | string[],
     model?: 'text-moderation-latest' | 'text-moderation-stable'
@@ -881,7 +995,7 @@ export class OpenAI {
       method: 'POST',
       body: {
         input,
-        model: model || 'text-moderation-latest'
+        model: model ?? 'text-moderation-latest'
       }
     })
 
