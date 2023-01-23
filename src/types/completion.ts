@@ -53,7 +53,7 @@ export interface CreateCompletionParams {
   /**
    * Include the log probabilities on the logprobs most likely tokens, as well the chosen tokens. For example, if logprobs is 5, the API will return a list of the 5 most likely tokens. The API will always return the logprob of the sampled token, so there may be up to logprobs+1 elements in the response.
 
-The maximum value for logprobs is 5. If you need more than this, please contact us through our Help center and describe your use case.
+The maximum value for logprobs is 5. If you need more than this, please contact OpenAI through OpenAI's Help center and describe your use case.
    */
   logprobs?: number | null
   /**

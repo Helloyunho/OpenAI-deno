@@ -682,13 +682,13 @@ export class OpenAI {
   }
 
   /**
-   * Upload a file that contains document(s) to be used across various endpoints/features. Currently, the size of all the files uploaded by one organization can be up to 1 GB. Please contact us if you need to increase the storage limit.
+   * Upload a file that contains document(s) to be used across various endpoints/features. Currently, the size of all the files uploaded by one organization can be up to 1 GB. Please contact OpenAI if you need to increase the storage limit.
    * @param file Name of the [JSON Lines](https://jsonlines.readthedocs.io/en/latest/) file to be uploaded.
 
 If the `purpose` is set to "fine-tune", each line is a JSON record with "prompt" and "completion" fields representing your [training examples](https://beta.openai.com/docs/guides/fine-tuning/prepare-training-data).
    * @param purpose The intended purpose of the uploaded documents.
 
-Use "fine-tune" for [Fine-tuning](https://beta.openai.com/docs/api-reference/fine-tunes). This allows us to validate the format of the uploaded file.
+Use "fine-tune" for [Fine-tuning](https://beta.openai.com/docs/api-reference/fine-tunes). This allows OpenAI to validate the format of the uploaded file.
    * @returns The uploaded file.
    */
   async uploadFile(
@@ -983,7 +983,7 @@ See the [fine-tuning guide](https://beta.openai.com/docs/guides/fine-tuning/crea
    * @param input The input text to classify
    * @param model Two content moderations models are available: `text-moderation-stable` and `text-moderation-latest`.
 
-The default is `text-moderation-latest` which will be automatically upgraded over time. This ensures you are always using our most accurate model. If you use `text-moderation-stable`, we will provide advanced notice before updating the model. Accuracy of `text-moderation-stable` may be slightly lower than for `text-moderation-latest`.
+The default is `text-moderation-latest` which will be automatically upgraded over time. This ensures you are always using OpenAI's most accurate model. If you use `text-moderation-stable`, OpenAI will provide advanced notice before updating the model. Accuracy of `text-moderation-stable` may be slightly lower than for `text-moderation-latest`.
    * @returns The moderation results.
    */
   async createModeration(
