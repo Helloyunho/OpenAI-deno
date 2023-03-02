@@ -5,6 +5,13 @@ import {
   AnswerResponse
 } from './types/answer.ts'
 import {
+  ChatFormat,
+  CreateChatParams,
+  CreateChatRawRequest,
+  CreateChatRawResponse,
+  CreateChatResponse
+} from './types/chat.ts'
+import {
   ClassificationArgs,
   ClassificationRawRequest,
   ClassificationRawResponse,
@@ -438,6 +445,49 @@ export class OpenAI {
       model: resp.model,
       searchModel: resp.search_model,
       selectedDocuments: resp.selected_documents
+    }
+  }
+
+  async createChat(
+    model: string,
+    messages: ChatFormat[],
+    params: CreateChatParams
+  ): Promise<CreateChatResponse> {
+    const rawRequest: CreateChatRawRequest = {
+      model,
+      messages,
+      temperature: params.temperature,
+      top_p: params.topP,
+      n: params.count,
+      stop: params.stop,
+      max_tokens: params.maxTokens,
+      presence_penalty: params.presencePenalty,
+      frequency_penalty: params.frequencyPenalty,
+      logit_bias: params.logitBias,
+      user: params.user
+    }
+
+    const resp = await this.request<CreateChatRawResponse>({
+      url: `/chat/completions`,
+      method: 'POST',
+      body: { ...rawRequest }
+    })
+
+    return {
+      id: resp.id,
+      object: resp.object,
+      created: resp.created,
+      choices: resp.choices.map((choice) => ({
+        message: choice.message,
+        index: choice.index,
+        logprobs: this.convertLogProbs(choice.logprobs),
+        finishReason: choice.finish_reason
+      })),
+      usage: {
+        promptTokens: resp.usage.prompt_tokens,
+        completionTokens: resp.usage.completion_tokens,
+        totalTokens: resp.usage.total_tokens
+      }
     }
   }
 
