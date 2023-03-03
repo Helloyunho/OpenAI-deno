@@ -5,6 +5,12 @@ import {
   AnswerResponse
 } from './types/answer.ts'
 import {
+  CreateTranscriptionParams,
+  CreateTranscriptionRawResponse,
+  CreateTranslationParams,
+  CreateTranslationRawResponse
+} from './types/audio.ts'
+import {
   ChatFormat,
   CreateChatParams,
   CreateChatRawRequest,
@@ -448,6 +454,13 @@ export class OpenAI {
     }
   }
 
+  /**
+   * Creates a completion for the chat message
+   * @param model ID of the model to use. Currently, only `gpt-3.5-turbo` and `gpt-3.5-turbo-0301` are supported.
+   * @param messages The messages to generate chat completions for, in the [chat format](https://platform.openai.com/docs/guides/chat/introduction).
+   * @param params Optional parameters for the API.
+   * @returns The chat completion response.
+   */
   async createChat(
     model: string,
     messages: ChatFormat[],
@@ -700,6 +713,89 @@ export class OpenAI {
       object: resp.object,
       usage: this.convertUsage(resp.usage)
     }
+  }
+
+  /**
+   * Transcribes audio into the input language.
+   * @param file The audio file to transcribe, in one of these formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm.
+   * @param model ID of the model to use. Only `whisper-1` is currently available.
+   * @param params Optional parameters for the API.
+   * @returns The transcription of the audio.
+   */
+  async createTranscription(
+    file: string | BlobPart,
+    model: string,
+    params: CreateTranscriptionParams
+  ): Promise<string> {
+    const formData = new FormData()
+    let fileBlob: Blob
+    if (typeof file === 'string') {
+      const fileArray = await Deno.readFile(file)
+      fileBlob = new Blob([fileArray])
+    } else {
+      fileBlob = new Blob([file])
+    }
+
+    formData.append('file', fileBlob)
+    formData.append('model', model)
+
+    if (params.prompt !== undefined) {
+      formData.append('prompt', params.prompt)
+    }
+    if (params.temperature !== undefined) {
+      formData.append('temperature', params.temperature.toString())
+    }
+    if (params.language !== undefined) {
+      formData.append('language', params.language)
+    }
+
+    const resp = await this.request<CreateTranscriptionRawResponse>({
+      url: `/audio/transcriptions`,
+      method: 'POST',
+      body: formData
+    })
+
+    return resp.text
+  }
+
+  /**
+   * Translates audio into into English.
+   * @param file The audio file to translate, in one of these formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm.
+   * @param model ID of the model to use. Only `whisper-1` is currently available.
+   * @param params Optional parameters for the API.
+   * @returns The translation of the audio.
+   */
+  async createTranslation(
+    file: string | BlobPart,
+    model: string,
+    params: CreateTranslationParams
+  ): Promise<string> {
+    const formData = new FormData()
+    let fileBlob: Blob
+    if (typeof file === 'string') {
+      const fileArray = await Deno.readFile(file)
+      fileBlob = new Blob([fileArray])
+    } else {
+      fileBlob = new Blob([file])
+    }
+
+    formData.append('file', fileBlob)
+    formData.append('model', model)
+
+    if (params.prompt !== undefined) {
+      formData.append('prompt', params.prompt)
+    }
+    if (params.temperature !== undefined) {
+      formData.append('temperature', params.temperature.toString())
+    }
+
+    const resp = await this.request<CreateTranslationRawResponse>({
+      url: `/audio/translations`,
+      method: 'POST',
+      body: formData
+    })
+
+    return resp.text
   }
 
   /**
