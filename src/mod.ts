@@ -49,7 +49,7 @@ import {
   LogProbs,
   DeleteResponse
 } from './types/etc.ts'
-import { File, FileRaw, FilesRawResponse } from './types/file.ts'
+import { File as OpenAIFile, FileRaw, FilesRawResponse } from './types/file.ts'
 import {
   CreateFineTuneParams,
   CreateFineTuneRawRequest,
@@ -74,6 +74,7 @@ import {
   SearchResponse
 } from './types/search.ts'
 import { MAIN_URL } from './types/url.ts'
+import { basename } from './deps.ts'
 
 export class OpenAI {
   _token?: string
@@ -215,7 +216,7 @@ export class OpenAI {
     }
   }
 
-  private convertFile(file: FileRaw): File {
+  private convertFile(file: FileRaw): OpenAIFile {
     return {
       id: file.id,
       object: file.object,
@@ -588,27 +589,37 @@ export class OpenAI {
   async createImageEdit(
     image: string | BlobPart,
     prompt: string,
-    params: CreateImageEditParams
+    params: CreateImageEditParams,
+    filename?: string
   ): Promise<CreateImageResponse> {
     const formData = new FormData()
-    let fileBlob: Blob
+    let fileBlob: File
     if (typeof image === 'string') {
       const fileArray = await Deno.readFile(image)
-      fileBlob = new Blob([fileArray])
+      const _filename = basename(image)
+      fileBlob = new File([fileArray], filename ?? _filename)
     } else {
-      fileBlob = new Blob([image])
+      if (filename === undefined) {
+        throw new Error('No file name provided.')
+      }
+      fileBlob = new File([image], filename ?? 'unknown')
     }
 
     formData.append('image', fileBlob)
     formData.append('prompt', prompt)
 
     if (params.mask !== undefined) {
-      let fileBlob: Blob
-      if (typeof image === 'string') {
-        const fileArray = await Deno.readFile(image)
-        fileBlob = new Blob([fileArray])
+      let fileBlob: File
+      const mask = params.mask
+      if (typeof mask.file === 'string') {
+        const fileArray = await Deno.readFile(mask.file)
+        const _filename = basename(mask.file)
+        fileBlob = new File([fileArray], mask.name ?? _filename)
       } else {
-        fileBlob = new Blob([image])
+        if (mask.name === undefined) {
+          throw new Error('No file name provided.')
+        }
+        fileBlob = new File([mask.file], mask.name ?? 'unknown')
       }
       formData.append('mask', fileBlob)
     }
@@ -645,15 +656,20 @@ export class OpenAI {
    */
   async createImageVariation(
     image: string | BlobPart,
-    params: CreateImageParams
+    params: CreateImageParams,
+    filename?: string
   ): Promise<CreateImageResponse> {
     const formData = new FormData()
-    let fileBlob: Blob
+    let fileBlob: File
     if (typeof image === 'string') {
       const fileArray = await Deno.readFile(image)
-      fileBlob = new Blob([fileArray])
+      const _filename = basename(image)
+      fileBlob = new File([fileArray], filename ?? _filename)
     } else {
-      fileBlob = new Blob([image])
+      if (filename === undefined) {
+        throw new Error('No file name provided.')
+      }
+      fileBlob = new File([image], filename ?? 'unknown')
     }
 
     formData.append('image', fileBlob)
@@ -725,15 +741,20 @@ export class OpenAI {
   async createTranscription(
     file: string | BlobPart,
     model: string,
-    params: CreateTranscriptionParams
+    params: CreateTranscriptionParams,
+    filename?: string
   ): Promise<string> {
     const formData = new FormData()
-    let fileBlob: Blob
+    let fileBlob: File
     if (typeof file === 'string') {
       const fileArray = await Deno.readFile(file)
-      fileBlob = new Blob([fileArray])
+      const _filename = basename(file)
+      fileBlob = new File([fileArray], filename ?? _filename)
     } else {
-      fileBlob = new Blob([file])
+      if (filename === undefined) {
+        throw new Error('No file name provided.')
+      }
+      fileBlob = new File([file], filename ?? 'unknown')
     }
 
     formData.append('file', fileBlob)
@@ -768,15 +789,20 @@ export class OpenAI {
   async createTranslation(
     file: string | BlobPart,
     model: string,
-    params: CreateTranslationParams
+    params: CreateTranslationParams,
+    filename?: string
   ): Promise<string> {
     const formData = new FormData()
-    let fileBlob: Blob
+    let fileBlob: File
     if (typeof file === 'string') {
       const fileArray = await Deno.readFile(file)
-      fileBlob = new Blob([fileArray])
+      const _filename = basename(file)
+      fileBlob = new File([fileArray], filename ?? _filename)
     } else {
-      fileBlob = new Blob([file])
+      if (filename === undefined) {
+        throw new Error('No file name provided.')
+      }
+      fileBlob = new File([file], filename ?? 'unknown')
     }
 
     formData.append('file', fileBlob)
@@ -799,9 +825,9 @@ export class OpenAI {
   }
 
   /**
-   * Alias for {@link OpenAI#listFiles}. This method is deprecated and will be removed in a future version.
+   * Alias for {@link OpenAI#this.listFiles}. This method is deprecated and will be removed in a future version.
    */
-  async getFiles(): Promise<File[]> {
+  async getFiles(): Promise<OpenAIFile[]> {
     return await this.listFiles()
   }
 
@@ -809,7 +835,7 @@ export class OpenAI {
    * Returns a list of files that belong to the user's organization.
    * @returns List of files.
    */
-  async listFiles(): Promise<File[]> {
+  async listFiles(): Promise<OpenAIFile[]> {
     const resp = await this.request<FilesRawResponse>({
       url: `/files`,
       method: 'GET'
@@ -838,27 +864,24 @@ Use "fine-tune" for [Fine-tuning](https://beta.openai.com/docs/api-reference/fin
    * @returns The uploaded file.
    */
   async uploadFile(
-    file:
-      | {
-          name: string
-          content: BlobPart
-        }
-      | string,
-    purpose: string
-  ): Promise<File> {
+    file: string | BlobPart,
+    purpose: string,
+    filename?: string
+  ): Promise<OpenAIFile> {
     const formData = new FormData()
-    let name: string
-    let fileBlob: Blob
+    let fileBlob: File
     if (typeof file === 'string') {
-      name = file
       const fileArray = await Deno.readFile(file)
-      fileBlob = new Blob([fileArray])
+      const _filename = basename(file)
+      fileBlob = new File([fileArray], filename ?? _filename)
     } else {
-      name = file.name
-      fileBlob = new Blob([file.content])
+      if (filename === undefined) {
+        throw new Error('No file name provided.')
+      }
+      fileBlob = new File([file], filename ?? 'unknown')
     }
 
-    formData.append('file', fileBlob, name)
+    formData.append('file', fileBlob)
     formData.append('purpose', purpose)
 
     const resp = await this.request<FileRaw>({
@@ -896,7 +919,7 @@ Use "fine-tune" for [Fine-tuning](https://beta.openai.com/docs/api-reference/fin
   /**
    * Alias for {@link OpenAI#retrieveFile}. This method is deprecated and will be removed in a future version.
    */
-  async getFile(fileID: string): Promise<File> {
+  async getFile(fileID: string): Promise<OpenAIFile> {
     return await this.retrieveFile(fileID)
   }
 
@@ -905,7 +928,7 @@ Use "fine-tune" for [Fine-tuning](https://beta.openai.com/docs/api-reference/fin
    * @param fileID The ID of the file to use for this request
    * @returns The file.
    */
-  async retrieveFile(fileID: string): Promise<File> {
+  async retrieveFile(fileID: string): Promise<OpenAIFile> {
     const resp = await this.request<FileRaw>({
       url: `/files/${fileID}`,
       method: 'GET'
@@ -955,7 +978,7 @@ See the [fine-tuning guide](https://beta.openai.com/docs/guides/fine-tuning/crea
    * @returns The fine-tune job.
    */
   async createFineTune(
-    trainingFile: File | string,
+    trainingFile: OpenAIFile | string,
     params: CreateFineTuneParams
   ): Promise<FineTune> {
     const rawRequest: CreateFineTuneRawRequest = {

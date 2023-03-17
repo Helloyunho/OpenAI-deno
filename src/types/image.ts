@@ -42,7 +42,10 @@ export interface CreateImageEditParams {
   /**
    * An additional image(or image path) whose fully transparent areas (e.g. where alpha is zero) indicate where `image` should be edited. Must be a valid PNG file, less than 4MB, and have the same dimensions as `image`.
    */
-  mask?: string | BlobPart
+  mask?: {
+    file: string | BlobPart
+    name?: string
+  }
   /**
    * The number of images to generate. Must be between 1 and 10.
    */
