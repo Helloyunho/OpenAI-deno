@@ -1,13 +1,46 @@
 import { LimitedUsage, LimitedUsageRaw, LogProbs, LogProbsRaw } from './etc.ts'
 
+export interface ChatFunctionCallRaw {
+  name: string
+  arguments: string
+}
+
+export interface ChatFunctionCall {
+  name: string
+  arguments: Record<string, unknown>
+}
+
+export interface ChatFormatRaw {
+  role: 'user' | 'assistant' | 'system' | string
+  content?: string
+  name?: string
+  function_call?: ChatFunctionCallRaw
+}
+
 export interface ChatFormat {
   role: 'user' | 'assistant' | 'system' | string
-  content: string
+  content?: string
+  name?: string
+  functionCall?: ChatFunctionCall
+}
+
+export interface ChatFunctionRaw {
+  name: string
+  description?: string
+  parameters?: Record<string, unknown>
+}
+
+export interface ChatFunction {
+  name: string
+  description?: string
+  parameters?: Record<string, unknown>
 }
 
 export interface CreateChatRawRequest {
   model: string
-  messages: ChatFormat[]
+  messages: ChatFormatRaw[]
+  functions?: ChatFunctionRaw[]
+  function_call?: ChatFunctionCallRaw | string
   temperature?: number
   top_p?: number
   n?: number
@@ -21,6 +54,14 @@ export interface CreateChatRawRequest {
 }
 
 export interface CreateChatParams {
+  /**
+   * A list of functions the model may generate JSON inputs for.
+   */
+  functions?: ChatFunction[]
+  /**
+   * Controls how the model responds to function calls. "none" means the model does not call a function, and responds to the end-user. "auto" means the model can pick between an end-user or calling a function. Specifying a particular function via `{"name":\ "my_function"}` forces the model to call that function. "none" is the default when no functions are present. "auto" is the default if functions are present.
+   */
+  functionCall?: ChatFunctionCall | string
   /**
    * What [sampling temperature](https://towardsdatascience.com/how-to-sample-from-language-models-682bceb97277) to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.
 
@@ -79,7 +120,7 @@ export interface CreateChatRawResponse {
   object: string
   created: number
   choices: {
-    message: ChatFormat
+    message: ChatFormatRaw
     index: number
     logprobs?: LogProbsRaw
     finish_reason: string

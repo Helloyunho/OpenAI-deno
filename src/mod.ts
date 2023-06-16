@@ -12,6 +12,7 @@ import {
 } from './types/audio.ts'
 import {
   ChatFormat,
+  ChatFormatRaw,
   CreateChatParams,
   CreateChatRawRequest,
   CreateChatRawResponse,
@@ -469,7 +470,30 @@ export class OpenAI {
   ): Promise<CreateChatResponse> {
     const rawRequest: CreateChatRawRequest = {
       model,
-      messages,
+      messages: messages.map((msg) => {
+        let fn_call: ChatFormatRaw['function_call'] | undefined = undefined
+        if (msg.functionCall !== undefined) {
+          fn_call = {
+            name: msg.functionCall.name,
+            arguments: JSON.stringify(msg.functionCall.arguments)
+          }
+        }
+
+        return {
+          role: msg.role,
+          content: msg.content,
+          name: msg.name,
+          function_call: fn_call
+        }
+      }),
+      functions: params.functions,
+      function_call:
+        typeof params.functionCall === 'object'
+          ? {
+              name: params.functionCall.name,
+              arguments: JSON.stringify(params.functionCall.arguments)
+            }
+          : params.functionCall,
       temperature: params.temperature,
       top_p: params.topP,
       n: params.count,
@@ -491,12 +515,26 @@ export class OpenAI {
       id: resp.id,
       object: resp.object,
       created: resp.created,
-      choices: resp.choices.map((choice) => ({
-        message: choice.message,
-        index: choice.index,
-        logprobs: this.convertLogProbs(choice.logprobs),
-        finishReason: choice.finish_reason
-      })),
+      choices: resp.choices.map((choice) => {
+        let fn_call: ChatFormat['functionCall'] | undefined = undefined
+        if (choice.message.function_call !== undefined) {
+          fn_call = {
+            name: choice.message.function_call.name,
+            arguments: JSON.parse(choice.message.function_call.arguments)
+          }
+        }
+        return {
+          message: {
+            role: choice.message.role,
+            content: choice.message.content,
+            name: choice.message.name,
+            functionCall: fn_call
+          },
+          index: choice.index,
+          logprobs: this.convertLogProbs(choice.logprobs),
+          finishReason: choice.finish_reason
+        }
+      }),
       usage: {
         promptTokens: resp.usage.prompt_tokens,
         completionTokens: resp.usage.completion_tokens,
