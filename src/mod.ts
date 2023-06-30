@@ -90,7 +90,7 @@ export class OpenAI {
     if (this._token !== undefined) {
       return this._token
     } else {
-      return Deno.env.get('OPENAI_API_TOKEN')
+      return Deno.env.get('OPENAI_API_KEY')
     }
   }
 
@@ -98,7 +98,7 @@ export class OpenAI {
     if (this._organizationToken !== undefined) {
       return this._organizationToken
     } else {
-      return Deno.env.get('OPENAI_API_ORGANIZATION_TOKEN')
+      return Deno.env.get('OPENAI_API_ORGANIZATION_ID')
     }
   }
 
