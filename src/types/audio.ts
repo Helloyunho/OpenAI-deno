@@ -23,7 +23,48 @@ export type CreateTranslationParams = Omit<
 >
 
 export interface CreateTranscriptionRawResponse {
+  task: string
+  language: string
+  duration: number
+  segments: AudioSegmentRaw[]
+  text: string
+}
+
+export interface AudioSegmentRaw {
+  id: number
+  seek: number
+  start: number
+  end: number
+  text: string
+  tokens: number[]
+  temperature: number
+  avg_logprob: number
+  compression_ratio: number
+  no_speech_prob: number
+  transient: boolean
+}
+
+export interface AudioSegment {
+  id: number
+  seek: number
+  start: number
+  end: number
+  text: string
+  tokens: number[]
+  temperature: number
+  avgLogprob: number
+  compressionRatio: number
+  noSpeechProb: number
+  transient: boolean
+}
+
+export interface CreateTranscriptionResponse {
+  task: string
+  language: string
+  duration: number
+  segments: AudioSegment[]
   text: string
 }
 
 export type CreateTranslationRawResponse = CreateTranscriptionRawResponse
+export type CreateTranslationResponse = CreateTranscriptionResponse

@@ -781,7 +781,7 @@ export class OpenAI {
     model: string,
     params: CreateTranscriptionParams,
     filename?: string
-  ): Promise<string> {
+  ): Promise<CreateTranscriptionResponse> {
     const formData = new FormData()
     let fileBlob: File
     if (typeof file === 'string') {
@@ -797,6 +797,7 @@ export class OpenAI {
 
     formData.append('file', fileBlob)
     formData.append('model', model)
+    formData.append('response_format', 'verbose_json')
 
     if (params.prompt !== undefined) {
       formData.append('prompt', params.prompt)
@@ -814,7 +815,25 @@ export class OpenAI {
       body: formData
     })
 
-    return resp.text
+    return {
+      task: resp.task,
+      language: resp.language,
+      duration: resp.duration,
+      segments: resp.segments.map((s) => ({
+        id: s.id,
+        seek: s.seek,
+        start: s.start,
+        end: s.end,
+        text: s.text,
+        tokens: s.tokens,
+        temperature: s.temperature,
+        avgLogprob: s.avg_logprob,
+        compressionRatio: s.compression_ratio,
+        noSpeechProb: s.no_speech_prob,
+        transient: s.transient
+      })),
+      text: resp.text
+    }
   }
 
   /**
@@ -829,7 +848,7 @@ export class OpenAI {
     model: string,
     params: CreateTranslationParams,
     filename?: string
-  ): Promise<string> {
+  ): Promise<CreateTranslationResponse> {
     const formData = new FormData()
     let fileBlob: File
     if (typeof file === 'string') {
@@ -845,6 +864,7 @@ export class OpenAI {
 
     formData.append('file', fileBlob)
     formData.append('model', model)
+    formData.append('response_format', 'verbose_json')
 
     if (params.prompt !== undefined) {
       formData.append('prompt', params.prompt)
@@ -859,7 +879,25 @@ export class OpenAI {
       body: formData
     })
 
-    return resp.text
+    return {
+      task: resp.task,
+      language: resp.language,
+      duration: resp.duration,
+      segments: resp.segments.map((s) => ({
+        id: s.id,
+        seek: s.seek,
+        start: s.start,
+        end: s.end,
+        text: s.text,
+        tokens: s.tokens,
+        temperature: s.temperature,
+        avgLogprob: s.avg_logprob,
+        compressionRatio: s.compression_ratio,
+        noSpeechProb: s.no_speech_prob,
+        transient: s.transient
+      })),
+      text: resp.text
+    }
   }
 
   /**
