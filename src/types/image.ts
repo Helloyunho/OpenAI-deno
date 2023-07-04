@@ -1,8 +1,8 @@
 export interface CreateImageRawRequest {
   prompt: string
   n?: number
-  size?: '256x256' | '512x512' | '1024x1024'
-  response_format?: 'url' | 'b64_json'
+  size?: '256x256' | '512x512' | '1024x1024' | string
+  response_format?: 'url' | 'b64_json' | string
   user?: string
 }
 
@@ -22,11 +22,11 @@ export interface CreateImageParams {
   /**
    * The size of the generated images. Must be one of `256x256`, `512x512`, or `1024x1024`.
    */
-  size?: '256x256' | '512x512' | '1024x1024'
+  size?: '256x256' | '512x512' | '1024x1024' | string
   /**
    * The format in which the generated images are returned. Must be one of `url` or `b64_json`.
    */
-  responseFormat?: 'url' | 'b64_json'
+  responseFormat?: 'url' | 'b64_json' | string
   /**
    * A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse. [Learn more](https://beta.openai.com/docs/guides/safety-best-practices/end-user-ids).
    */
@@ -53,11 +53,11 @@ export interface CreateImageEditParams {
   /**
    * The size of the generated images. Must be one of `256x256`, `512x512`, or `1024x1024`.
    */
-  size?: '256x256' | '512x512' | '1024x1024'
+  size?: '256x256' | '512x512' | '1024x1024' | string
   /**
    * The format in which the generated images are returned. Must be one of `url` or `b64_json`.
    */
-  responseFormat?: 'url' | 'b64_json'
+  responseFormat?: 'url' | 'b64_json' | string
   /**
    * A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse. [Learn more](https://beta.openai.com/docs/guides/safety-best-practices/end-user-ids).
    */
