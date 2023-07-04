@@ -8,7 +8,8 @@ import {
   CreateTranscriptionParams,
   CreateTranscriptionRawResponse,
   CreateTranslationParams,
-  CreateTranslationRawResponse
+  CreateTranslationRawResponse,
+  CreateTranslationResponse
 } from './types/audio.ts'
 import {
   ChatFormat,
@@ -76,6 +77,7 @@ import {
 } from './types/search.ts'
 import { MAIN_URL } from './types/url.ts'
 import { basename } from './deps.ts'
+import { CreateTranscriptionResponse } from '../mod.ts'
 
 export class OpenAI {
   _token?: string
@@ -284,16 +286,16 @@ export class OpenAI {
    */
   async createCompletion(
     model: string,
-    params: CreateCompletionParams
+    params?: CreateCompletionParams
   ): Promise<CreateCompletionResponse> {
     if (
-      params.presencePenalty !== undefined &&
+      params?.presencePenalty !== undefined &&
       (params.presencePenalty > 2 || params.presencePenalty < -2)
     ) {
       throw new Error('Presence penalty should be in a range between 2 and -2.')
     }
     if (
-      params.frequencyPenalty !== undefined &&
+      params?.frequencyPenalty !== undefined &&
       (params.frequencyPenalty > 2 || params.frequencyPenalty < -2)
     ) {
       throw new Error(
@@ -303,20 +305,20 @@ export class OpenAI {
 
     const rawRequest: CompletionRawRequest = {
       model,
-      prompt: params.prompt,
-      suffix: params.suffix,
-      max_tokens: params.maxTokens,
-      temperature: params.temperature,
-      top_p: params.topP,
-      n: params.count,
-      logprobs: params.logprobs,
-      echo: params.echo,
-      stop: params.stop,
-      presence_penalty: params.presencePenalty,
-      frequency_penalty: params.frequencyPenalty,
-      best_of: params.bestOf,
-      logit_bias: params.logitBias,
-      user: params.user
+      prompt: params?.prompt,
+      suffix: params?.suffix,
+      max_tokens: params?.maxTokens,
+      temperature: params?.temperature,
+      top_p: params?.topP,
+      n: params?.count,
+      logprobs: params?.logprobs,
+      echo: params?.echo,
+      stop: params?.stop,
+      presence_penalty: params?.presencePenalty,
+      frequency_penalty: params?.frequencyPenalty,
+      best_of: params?.bestOf,
+      logit_bias: params?.logitBias,
+      user: params?.user
     }
 
     const resp = await this.request<CompletionRawResponse>({
@@ -466,7 +468,7 @@ export class OpenAI {
   async createChat(
     model: string,
     messages: ChatFormat[],
-    params: CreateChatParams
+    params?: CreateChatParams
   ): Promise<CreateChatResponse> {
     const rawRequest: CreateChatRawRequest = {
       model,
@@ -486,23 +488,23 @@ export class OpenAI {
           function_call: fn_call
         }
       }),
-      functions: params.functions,
+      functions: params?.functions,
       function_call:
-        typeof params.functionCall === 'object'
+        typeof params?.functionCall === 'object'
           ? {
               name: params.functionCall.name,
               arguments: JSON.stringify(params.functionCall.arguments)
             }
-          : params.functionCall,
-      temperature: params.temperature,
-      top_p: params.topP,
-      n: params.count,
-      stop: params.stop,
-      max_tokens: params.maxTokens,
-      presence_penalty: params.presencePenalty,
-      frequency_penalty: params.frequencyPenalty,
-      logit_bias: params.logitBias,
-      user: params.user
+          : params?.functionCall,
+      temperature: params?.temperature,
+      top_p: params?.topP,
+      n: params?.count,
+      stop: params?.stop,
+      max_tokens: params?.maxTokens,
+      presence_penalty: params?.presencePenalty,
+      frequency_penalty: params?.frequencyPenalty,
+      logit_bias: params?.logitBias,
+      user: params?.user
     }
 
     const resp = await this.request<CreateChatRawResponse>({
@@ -553,15 +555,15 @@ export class OpenAI {
   async createEdit(
     model: string,
     instruction: string,
-    params: CreateEditParams
+    params?: CreateEditParams
   ): Promise<CreateEditResponse> {
     const rawRequest: CreateEditRawRequest = {
       model,
       instruction,
-      input: params.input,
-      n: params.count,
-      temperature: params.temperature,
-      top_p: params.topP
+      input: params?.input,
+      n: params?.count,
+      temperature: params?.temperature,
+      top_p: params?.topP
     }
 
     const resp = await this.request<CreateEditRawResponse>({
@@ -595,14 +597,14 @@ export class OpenAI {
    */
   async createImage(
     prompt: string,
-    params: CreateImageParams
+    params?: CreateImageParams
   ): Promise<CreateImageResponse> {
     const rawRequest: CreateImageRawRequest = {
       prompt,
-      n: params.count,
-      size: params.size,
-      response_format: params.responseFormat,
-      user: params.user
+      n: params?.count,
+      size: params?.size,
+      response_format: params?.responseFormat,
+      user: params?.user
     }
 
     const resp = await this.request<CreateImageRawResponse>({
@@ -627,7 +629,7 @@ export class OpenAI {
   async createImageEdit(
     image: string | BlobPart,
     prompt: string,
-    params: CreateImageEditParams,
+    params?: CreateImageEditParams,
     filename?: string
   ): Promise<CreateImageResponse> {
     const formData = new FormData()
@@ -646,7 +648,7 @@ export class OpenAI {
     formData.append('image', fileBlob)
     formData.append('prompt', prompt)
 
-    if (params.mask !== undefined) {
+    if (params?.mask !== undefined) {
       let fileBlob: File
       const mask = params.mask
       if (typeof mask.file === 'string') {
@@ -661,16 +663,16 @@ export class OpenAI {
       }
       formData.append('mask', fileBlob)
     }
-    if (params.count !== undefined) {
+    if (params?.count !== undefined) {
       formData.append('n', params.count.toString())
     }
-    if (params.size !== undefined) {
+    if (params?.size !== undefined) {
       formData.append('size', params.size.toString())
     }
-    if (params.responseFormat !== undefined) {
+    if (params?.responseFormat !== undefined) {
       formData.append('response_format', params.responseFormat)
     }
-    if (params.user !== undefined) {
+    if (params?.user !== undefined) {
       formData.append('user', params.user)
     }
 
@@ -694,7 +696,7 @@ export class OpenAI {
    */
   async createImageVariation(
     image: string | BlobPart,
-    params: CreateImageParams,
+    params?: CreateImageParams,
     filename?: string
   ): Promise<CreateImageResponse> {
     const formData = new FormData()
@@ -712,16 +714,16 @@ export class OpenAI {
 
     formData.append('image', fileBlob)
 
-    if (params.count !== undefined) {
+    if (params?.count !== undefined) {
       formData.append('n', params.count.toString())
     }
-    if (params.size !== undefined) {
+    if (params?.size !== undefined) {
       formData.append('size', params.size.toString())
     }
-    if (params.responseFormat !== undefined) {
+    if (params?.responseFormat !== undefined) {
       formData.append('response_format', params.responseFormat)
     }
-    if (params.user !== undefined) {
+    if (params?.user !== undefined) {
       formData.append('user', params.user)
     }
 
@@ -779,7 +781,7 @@ export class OpenAI {
   async createTranscription(
     file: string | BlobPart,
     model: string,
-    params: CreateTranscriptionParams,
+    params?: CreateTranscriptionParams,
     filename?: string
   ): Promise<CreateTranscriptionResponse> {
     const formData = new FormData()
@@ -799,13 +801,13 @@ export class OpenAI {
     formData.append('model', model)
     formData.append('response_format', 'verbose_json')
 
-    if (params.prompt !== undefined) {
+    if (params?.prompt !== undefined) {
       formData.append('prompt', params.prompt)
     }
-    if (params.temperature !== undefined) {
+    if (params?.temperature !== undefined) {
       formData.append('temperature', params.temperature.toString())
     }
-    if (params.language !== undefined) {
+    if (params?.language !== undefined) {
       formData.append('language', params.language)
     }
 
@@ -846,7 +848,7 @@ export class OpenAI {
   async createTranslation(
     file: string | BlobPart,
     model: string,
-    params: CreateTranslationParams,
+    params?: CreateTranslationParams,
     filename?: string
   ): Promise<CreateTranslationResponse> {
     const formData = new FormData()
@@ -866,10 +868,10 @@ export class OpenAI {
     formData.append('model', model)
     formData.append('response_format', 'verbose_json')
 
-    if (params.prompt !== undefined) {
+    if (params?.prompt !== undefined) {
       formData.append('prompt', params.prompt)
     }
-    if (params.temperature !== undefined) {
+    if (params?.temperature !== undefined) {
       formData.append('temperature', params.temperature.toString())
     }
 
@@ -1055,25 +1057,25 @@ See the [fine-tuning guide](https://beta.openai.com/docs/guides/fine-tuning/crea
    */
   async createFineTune(
     trainingFile: OpenAIFile | string,
-    params: CreateFineTuneParams
+    params?: CreateFineTuneParams
   ): Promise<FineTune> {
     const rawRequest: CreateFineTuneRawRequest = {
       training_file:
         typeof trainingFile === 'string' ? trainingFile : trainingFile.id,
       validation_file:
-        typeof params.validationFile === 'string'
+        typeof params?.validationFile === 'string'
           ? params.validationFile
-          : params.validationFile?.id,
-      model: params.model,
-      n_epochs: params.epochs,
-      batch_size: params.batchSize,
-      learning_rate_multiplier: params.learningRate,
-      prompt_loss_weight: params.lossWeight,
-      compute_classification_metrics: params.computeClassificationMetrics,
-      classification_n_classes: params.classificationClasses,
-      classification_positive_class: params.classificationPositiveClass,
-      classification_betas: params.classificationBetas,
-      suffix: params.suffix
+          : params?.validationFile?.id,
+      model: params?.model,
+      n_epochs: params?.epochs,
+      batch_size: params?.batchSize,
+      learning_rate_multiplier: params?.learningRate,
+      prompt_loss_weight: params?.lossWeight,
+      compute_classification_metrics: params?.computeClassificationMetrics,
+      classification_n_classes: params?.classificationClasses,
+      classification_positive_class: params?.classificationPositiveClass,
+      classification_betas: params?.classificationBetas,
+      suffix: params?.suffix
     }
 
     const resp = await this.request<FineTuneRaw>({
