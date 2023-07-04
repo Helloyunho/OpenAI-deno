@@ -11,14 +11,14 @@ export interface ChatFunctionCall {
 }
 
 export interface ChatFormatRaw {
-  role: 'user' | 'assistant' | 'system' | string
+  role: 'user' | 'assistant' | 'system' | 'function' | string
   content?: string
   name?: string
   function_call?: ChatFunctionCallRaw
 }
 
 export interface ChatFormat {
-  role: 'user' | 'assistant' | 'system' | string
+  role: 'user' | 'assistant' | 'system' | 'function' | string
   content?: string
   name?: string
   functionCall?: ChatFunctionCall
