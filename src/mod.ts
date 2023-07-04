@@ -280,7 +280,7 @@ export class OpenAI {
 
   /**
    * Creates a completion for the provided prompt and parameters
-   * @param model ID of the model to use. You can use the {@link OpenAI#listModels} to see all of your available models, or see OpenAI's [Model overview](https://beta.openai.com/docs/models/overview) for descriptions of them.
+   * @param model ID of the model to use. You can use the {@link OpenAI#listModels} to see all of your available models, or see OpenAI's [Model overview](https://platform.openai.com/docs/models/overview) for descriptions of them.
    * @param params Optional parameters for the API.
    * @returns Completion results.
    */
@@ -460,8 +460,8 @@ export class OpenAI {
 
   /**
    * Creates a completion for the chat message
-   * @param model ID of the model to use. Currently, only `gpt-3.5-turbo` and `gpt-3.5-turbo-0301` are supported.
-   * @param messages The messages to generate chat completions for, in the [chat format](https://platform.openai.com/docs/guides/chat/introduction).
+   * @param model ID of the model to use. See the [model endpoint compatibility](https://platform.openai.com/docs/models/model-endpoint-compatibility) table for details on which models work with the Chat API.
+   * @param messages A list of messages comprising the conversation so far. [Example Python code](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_format_inputs_to_ChatGPT_models.ipynb).
    * @param params Optional parameters for the API.
    * @returns The chat completion response.
    */
@@ -547,7 +547,7 @@ export class OpenAI {
 
   /**
    * Creates a new edit for the provided input, instruction, and parameters
-   * @param model ID of the model to use. You can use the {@link OpenAI#listModels} to see all of your available models, or see OpenAI's [Model overview](https://beta.openai.com/docs/models/overview) for descriptions of them.
+   * @param model ID of the model to use.  You can use the `text-davinci-edit-001` or `code-davinci-edit-001` model with this endpoint.
    * @param instruction The instruction that tells the model how to edit the prompt.
    * @param params Optional parameters for the API.
    * @returns Edited texts.
@@ -741,9 +741,9 @@ export class OpenAI {
 
   /**
    * Creates an embedding vector representing the input text.
-   * @param model ID of the model to use. You can use the {@link OpenAI#listModels} to see all of your available models, or see OpenAI's [Model overview](https://beta.openai.com/docs/models/overview) for descriptions of them.
-   * @param input Input text to get embeddings for, encoded as a string or array of tokens. To get embeddings for multiple inputs in a single request, pass an array of strings or array of token arrays. Each input must not exceed 8192 tokens in length.
-   * @param user A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse. [Learn more](https://beta.openai.com/docs/guides/safety-best-practices/end-user-ids).
+   * @param model ID of the model to use. You can use the {@link OpenAI#listModels} to see all of your available models, or see OpenAI's [Model overview](https://platform.openai.com/docs/models/overview) for descriptions of them.
+   * @param input Input text to embed, encoded as a string or array of tokens. To embed multiple inputs in a single request, pass an array of strings or array of token arrays. Each input must not exceed the max input tokens for the model (8191 tokens for `text-embedding-ada-002`). [Example Python code](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb) for counting tokens.
+   * @param user A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse. [Learn more](https://platform.openai.com/docs/guides/safety-best-practices/end-user-ids).
    * @returns Embeddings for the input text.
    */
   async createEmbeddings(
@@ -935,10 +935,10 @@ export class OpenAI {
    * Upload a file that contains document(s) to be used across various endpoints/features. Currently, the size of all the files uploaded by one organization can be up to 1 GB. Please contact OpenAI if you need to increase the storage limit.
    * @param file Name of the [JSON Lines](https://jsonlines.readthedocs.io/en/latest/) file to be uploaded.
 
-If the `purpose` is set to "fine-tune", each line is a JSON record with "prompt" and "completion" fields representing your [training examples](https://beta.openai.com/docs/guides/fine-tuning/prepare-training-data).
+   * If the `purpose` is set to "fine-tune", each line is a JSON record with "prompt" and "completion" fields representing your [training examples](https://platform.openai.com/docs/guides/fine-tuning/prepare-training-data).
    * @param purpose The intended purpose of the uploaded documents.
 
-Use "fine-tune" for [Fine-tuning](https://beta.openai.com/docs/api-reference/fine-tunes). This allows OpenAI to validate the format of the uploaded file.
+   * Use "fine-tune" for [Fine-tuning](https://platform.openai.com/docs/api-reference/fine-tunes). This allows OpenAI to validate the format of the uploaded file.
    * @returns The uploaded file.
    */
   async uploadFile(
@@ -1042,16 +1042,16 @@ Use "fine-tune" for [Fine-tuning](https://beta.openai.com/docs/api-reference/fin
   /**
    * Creates a job that fine-tunes a specified model from a given dataset.
 
-Response includes details of the enqueued job including job status and the name of the fine-tuned models once complete.
+   * Response includes details of the enqueued job including job status and the name of the fine-tuned models once complete.
 
-[Learn more about Fine-tuning](https://beta.openai.com/docs/guides/fine-tuning)
+   * [Learn more about Fine-tuning](https://platform.openai.com/docs/guides/fine-tuning)
    * @param trainingFile The ID of an uploaded file that contains training data.
 
-See {@link OpenAI#uploadFile} for how to upload a file.
+   * See {@link OpenAI#uploadFile} for how to upload a file.
 
-Your dataset must be formatted as a JSONL file, where each training example is a JSON object with the keys "prompt" and "completion". Additionally, you must upload your file with the purpose `fine-tune`.
+   * Your dataset must be formatted as a JSONL file, where each training example is a JSON object with the keys "prompt" and "completion". Additionally, you must upload your file with the purpose `fine-tune`.
 
-See the [fine-tuning guide](https://beta.openai.com/docs/guides/fine-tuning/creating-training-data) for more details.
+   * See the [fine-tuning guide](https://platform.openai.com/docs/guides/fine-tuning/creating-training-data) for more details.
    * @param params Optional parameters for the API.
    * @returns The fine-tune job.
    */
@@ -1141,7 +1141,7 @@ See the [fine-tuning guide](https://beta.openai.com/docs/guides/fine-tuning/crea
   /**
    * Gets info about the fine-tune job.
 
-[Learn more about Fine-tuning](https://beta.openai.com/docs/guides/fine-tuning)
+   * [Learn more about Fine-tuning](https://platform.openai.com/docs/guides/fine-tuning)
    * @param fineTuneID The ID of the fine-tune job
    * @returns The fine-tune job.
    */
@@ -1230,7 +1230,7 @@ See the [fine-tuning guide](https://beta.openai.com/docs/guides/fine-tuning/crea
    * @param input The input text to classify
    * @param model Two content moderations models are available: `text-moderation-stable` and `text-moderation-latest`.
 
-The default is `text-moderation-latest` which will be automatically upgraded over time. This ensures you are always using OpenAI's most accurate model. If you use `text-moderation-stable`, OpenAI will provide advanced notice before updating the model. Accuracy of `text-moderation-stable` may be slightly lower than for `text-moderation-latest`.
+   * The default is `text-moderation-latest` which will be automatically upgraded over time. This ensures you are always using OpenAI's most accurate model. If you use `text-moderation-stable`, OpenAI will provide advanced notice before updating the model. Accuracy of `text-moderation-stable` may be slightly lower than for `text-moderation-latest`.
    * @returns The moderation results.
    */
   async createModeration(

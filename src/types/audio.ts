@@ -12,7 +12,7 @@ export interface CreateTranscriptionParams {
   temperature?: number
   /**
    * The language of the input audio.
-   * Supplying the input language in ISO-639-1 format will improve accuracy and latency.
+   * Supplying the input language in [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) format will improve accuracy and latency.
    */
   language?: string
 }
