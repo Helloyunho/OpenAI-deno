@@ -9,7 +9,7 @@ See the Documentation [here](https://deno.land/x/openai_deno/mod.ts).
 ```ts
 import { OpenAI } from 'https://deno.land/x/openai_deno/mod.ts'
 
-const openai = new OpenAI() // It automatically finds token from OPENAI_API_TOKEN env variable.
+const openai = new OpenAI() // It automatically finds token from OPENAI_API_KEY env variable.
 // You can also paste it to constructor's parameter. (NOT RECOMMENDED)
 
 const completion: CreateCompletionResponse = await openai.createCompletion(

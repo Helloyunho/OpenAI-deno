@@ -78,6 +78,14 @@ import {
 import { MAIN_URL } from './types/url.ts'
 import { basename } from './deps.ts'
 import { CreateTranscriptionResponse } from '../mod.ts'
+import {
+  CreateFineTuningJobParams,
+  CreateFineTuningJobRawRequest,
+  FineTuningEvent,
+  FineTuningEventRaw,
+  FineTuningJob,
+  FineTuningJobRaw
+} from './types/fineTuning.ts'
 
 export class OpenAI {
   _token?: string
@@ -109,39 +117,45 @@ export class OpenAI {
     url,
     headers = {},
     body,
-    raw = false
+    raw = false,
+    query = {}
   }: {
     method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
     url: string
     headers?: { [name: string]: string }
     body?: Record<string, unknown> | FormData | string
     raw?: false
+    query?: Record<string, string>
   }): Promise<R>
   async request<R>({
     method = 'GET',
     url,
     headers = {},
     body,
-    raw
+    raw,
+    query = {}
   }: {
     method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
     url: string
     headers?: { [name: string]: string }
     body?: Record<string, unknown> | FormData | string
     raw?: true
+    query?: Record<string, string>
   }): Promise<Blob>
   async request<R>({
     method = 'GET',
     url,
     headers = {},
     body,
-    raw = false
+    raw = false,
+    query = {}
   }: {
     method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
     url: string
     headers?: { [name: string]: string }
     body?: Record<string, unknown> | FormData | string
     raw?: boolean
+    query?: Record<string, string>
   }): Promise<Blob | R> {
     if (this.token === undefined) {
       throw new Error('No token was provided.')
@@ -159,6 +173,9 @@ export class OpenAI {
       headers['Content-Type'] = 'application/json'
       body = JSON.stringify(body)
     }
+
+    const urlParams = new URLSearchParams(query)
+    url = `${url}?${urlParams.toString()}`
 
     const resp = await fetch(`${MAIN_URL}${url}`, {
       headers,
@@ -1037,6 +1054,214 @@ export class OpenAI {
     })
 
     return resp
+  }
+
+  /**
+   * Creates a job that fine-tunes a specified model from a given dataset.
+
+   * Response includes details of the enqueued job including job status and the name of the fine-tuned models once complete.
+
+   * [Learn more about fine-tuning](https://platform.openai.com/docs/guides/fine-tuning)
+
+   * @param trainingFile The ID of an uploaded file that contains training data.
+
+   *                     See upload file for how to upload a file.
+
+   *                     Your dataset must be formatted as a JSONL file. Additionally, you must upload your file with the purpose fine-tune.
+
+   *                     See the fine-tuning guide for more details.
+   * @param model The name of the model to fine-tune.
+   *              You can select one of the [supported models](https://platform.openai.com/docs/guides/fine-tuning/what-models-can-be-fine-tuned).
+   * @param params Optional parameters for the API.
+   * @returns A fine-tuning.job object.
+   */
+  async createFineTuningJob(
+    trainingFile: OpenAIFile | string,
+    model: string,
+    params?: CreateFineTuningJobParams
+  ): Promise<FineTuningJob> {
+    const rawRequest: CreateFineTuningJobRawRequest = {
+      training_file:
+        typeof trainingFile === 'string' ? trainingFile : trainingFile.id,
+      validation_file:
+        typeof params?.validationFile === 'string'
+          ? params.validationFile
+          : params?.validationFile?.id,
+      model: model,
+      hyperparameters: params?.hyperparameters
+        ? {
+            n_epochs: params.hyperparameters.nEpochs
+          }
+        : undefined,
+      suffix: params?.suffix
+    }
+
+    const resp = await this.request<FineTuningJobRaw>({
+      url: `/fine_tuning/jobs`,
+      method: 'POST',
+      body: { ...rawRequest }
+    })
+
+    return {
+      id: resp.id,
+      object: resp.object,
+      createdAt: resp.created_at,
+      updatedAt: resp.updated_at,
+      model: resp.model,
+      fineTunedModel: resp.fine_tuned_model,
+      organizationID: resp.organization_id,
+      hyperparameters: {
+        nEpochs: resp.hyperparameters.n_epochs
+      },
+      trainingFile: resp.training_file,
+      validationFile: resp.validation_file,
+      resultFiles: resp.result_files,
+      status: resp.status,
+      trainedTokens: resp.trained_tokens
+    }
+  }
+
+  /**
+   * List your organization's fine-tuning jobs
+   * @param after Identifier for the last job from the previous pagination request.
+   * @param limit Number of fine-tuning jobs to retrieve.
+   * @returns A list of paginated fine-tuning job objects.
+   */
+  async listFineTuningJobs(
+    after?: string,
+    limit?: number
+  ): Promise<FineTuningJob[]> {
+    const query: Record<string, string> = {}
+    if (after !== undefined) {
+      query.after = after
+    }
+    if (limit !== undefined) {
+      query.limit = limit.toString()
+    }
+    const resp = await this.request<{
+      data: FineTuningJobRaw[]
+    }>({
+      url: `/fine_tuning/jobs`,
+      method: 'GET',
+      query
+    })
+
+    return resp.data.map((d) => ({
+      id: d.id,
+      object: d.object,
+      createdAt: d.created_at,
+      updatedAt: d.updated_at,
+      model: d.model,
+      fineTunedModel: d.fine_tuned_model,
+      organizationID: d.organization_id,
+      hyperparameters: {
+        nEpochs: d.hyperparameters.n_epochs
+      },
+      trainingFile: d.training_file,
+      validationFile: d.validation_file,
+      resultFiles: d.result_files,
+      status: d.status,
+      trainedTokens: d.trained_tokens
+    }))
+  }
+
+  /**
+   * Get info about a fine-tuning job.
+   * @param jobID The ID of the fine-tuning job.
+   * @returns The fine-tuning object with the given ID.
+   */
+  async retrieveFineTuningJob(jobID: string): Promise<FineTuningJob> {
+    const resp = await this.request<FineTuningJobRaw>({
+      url: `/fine_tuning/jobs/${jobID}`,
+      method: 'GET'
+    })
+
+    return {
+      id: resp.id,
+      object: resp.object,
+      createdAt: resp.created_at,
+      updatedAt: resp.updated_at,
+      model: resp.model,
+      fineTunedModel: resp.fine_tuned_model,
+      organizationID: resp.organization_id,
+      hyperparameters: {
+        nEpochs: resp.hyperparameters.n_epochs
+      },
+      trainingFile: resp.training_file,
+      validationFile: resp.validation_file,
+      resultFiles: resp.result_files,
+      status: resp.status,
+      trainedTokens: resp.trained_tokens
+    }
+  }
+
+  /**
+   * Immediately cancel a fine-tune job.
+   * @param jobID The ID of the fine-tuning job to cancel.
+   * @returns The cancelled fine-tuning object.
+   */
+  async cancelFineTuningJob(jobID: string): Promise<FineTuningJob> {
+    const resp = await this.request<FineTuningJobRaw>({
+      url: `/fine_tuning/jobs/${jobID}/cancel`,
+      method: 'POST'
+    })
+
+    return {
+      id: resp.id,
+      object: resp.object,
+      createdAt: resp.created_at,
+      updatedAt: resp.updated_at,
+      model: resp.model,
+      fineTunedModel: resp.fine_tuned_model,
+      organizationID: resp.organization_id,
+      hyperparameters: {
+        nEpochs: resp.hyperparameters.n_epochs
+      },
+      trainingFile: resp.training_file,
+      validationFile: resp.validation_file,
+      resultFiles: resp.result_files,
+      status: resp.status,
+      trainedTokens: resp.trained_tokens
+    }
+  }
+
+  async listFineTuningEvents(
+    jobID: string,
+    after?: string,
+    limit?: number
+  ): Promise<FineTuningEvent[]> {
+    const query: Record<string, string> = {}
+    if (after !== undefined) {
+      query.after = after
+    }
+    if (limit !== undefined) {
+      query.limit = limit.toString()
+    }
+    const resp = await this.request<{
+      data: FineTuningEventRaw[]
+    }>({
+      url: `/fine_tuning/jobs/${jobID}/events`,
+      method: 'GET',
+      query
+    })
+
+    return resp.data.map((d) => ({
+      object: d.object,
+      id: d.id,
+      createdAt: d.created_at,
+      level: d.level,
+      message: d.message,
+      data: d.data
+        ? {
+            step: d.data.step,
+            trainLoss: d.data.train_loss,
+            trainAccuracy: d.data.train_accuracy,
+            validLoss: d.data.valid_loss,
+            validMeanTokenAccuracy: d.data.valid_mean_token_accuracy
+          }
+        : null,
+      type: d.type
+    }))
   }
 
   /**
