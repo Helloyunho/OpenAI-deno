@@ -68,3 +68,16 @@ export interface CreateTranscriptionResponse {
 
 export type CreateTranslationRawResponse = CreateTranscriptionRawResponse
 export type CreateTranslationResponse = CreateTranscriptionResponse
+
+export interface CreateSpeechRawRequest {
+  model: 'tts-1' | 'tts-1-hd' | string
+  input: string
+  voice: 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer' | string
+  response_format?: 'mp3' | 'opus' | 'aac' | 'flac' | string
+  speed?: number
+}
+
+export interface CreateSpeechParams {
+  responseFormat?: 'mp3' | 'opus' | 'aac' | 'flac' | string
+  speed?: number
+}

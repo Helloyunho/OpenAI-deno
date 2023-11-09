@@ -1,4 +1,5 @@
 import { LimitedUsage, LimitedUsageRaw, LogProbs, LogProbsRaw } from './etc.ts'
+import { FunctionRaw, Function } from './function.ts'
 
 export interface ChatFunctionCallRaw {
   name: string
@@ -28,25 +29,10 @@ export interface ChatFormat {
   functionCall?: ChatFunctionCall
 }
 
-export interface ChatFunctionRaw {
-  name: string
-  description?: string
-  parameters?: Record<string, unknown>
-}
-
-export interface ChatFunction {
-  /** The name of the function to be called. Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a maximum length of 64. */
-  name: string
-  /** The description of what the function does. */
-  description?: string
-  /** The parameters the functions accepts, described as a JSON Schema object. See the [guide](https://platform.openai.com/docs/guides/gpt/function-calling) for examples, and the [JSON Schema reference](https://json-schema.org/understanding-json-schema/) for documentation about the format. */
-  parameters?: Record<string, unknown>
-}
-
 export interface CreateChatRawRequest {
   model: string
   messages: ChatFormatRaw[]
-  functions?: ChatFunctionRaw[]
+  functions?: FunctionRaw[]
   function_call?: ChatFunctionCallRaw | string
   temperature?: number
   top_p?: number
@@ -64,7 +50,7 @@ export interface CreateChatParams {
   /**
    * A list of functions the model may generate JSON inputs for.
    */
-  functions?: ChatFunction[]
+  functions?: Function[]
   /**
    * Controls how the model responds to function calls. "none" means the model does not call a function, and responds to the end-user. "auto" means the model can pick between an end-user or calling a function. Specifying a particular function via `{"name":\ "my_function"}` forces the model to call that function. "none" is the default when no functions are present. "auto" is the default if functions are present.
    */

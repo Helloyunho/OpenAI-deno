@@ -1,8 +1,17 @@
 export interface CreateImageRawRequest {
   prompt: string
+  model?: 'dall-e-2' | 'dall-e-3' | string
   n?: number
-  size?: '256x256' | '512x512' | '1024x1024' | string
+  quality?: 'standard' | 'hd' | string
+  size?:
+    | '256x256'
+    | '512x512'
+    | '1024x1024'
+    | '1792x1024'
+    | '1024x1792'
+    | string
   response_format?: 'url' | 'b64_json' | string
+  style?: 'vivid' | 'natural' | string | null
   user?: string
 }
 
@@ -15,18 +24,27 @@ export interface CreateImageRawResponse {
 }
 
 export interface CreateImageParams {
+  model?: 'dall-e-2' | 'dall-e-3' | string
   /**
    * The number of images to generate. Must be between 1 and 10.
    */
   count?: number
+  quality?: 'standard' | 'hd' | string
   /**
    * The size of the generated images. Must be one of `256x256`, `512x512`, or `1024x1024`.
    */
-  size?: '256x256' | '512x512' | '1024x1024' | string
+  size?:
+    | '256x256'
+    | '512x512'
+    | '1024x1024'
+    | '1792x1024'
+    | '1024x1792'
+    | string
   /**
    * The format in which the generated images are returned. Must be one of `url` or `b64_json`.
    */
   responseFormat?: 'url' | 'b64_json' | string
+  style?: 'vivid' | 'natural' | string | null
   /**
    * A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse. [Learn more](https://platform.openai.com/docs/guides/safety-best-practices/end-user-ids).
    */
