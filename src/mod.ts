@@ -621,8 +621,10 @@ export class OpenAI {
     const rawRequest: CreateImageRawRequest = {
       prompt,
       n: params?.count,
+      quality: params?.quality,
       size: params?.size,
       response_format: params?.responseFormat,
+      style: params?.style,
       user: params?.user
     }
 
