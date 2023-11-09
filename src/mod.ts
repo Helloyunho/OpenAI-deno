@@ -90,9 +90,12 @@ import {
 } from './types/fineTuning.ts'
 import {
   Assistant,
+  AssistantFile,
+  AssistantFileRaw,
   AssistantRaw,
   CreateAssistantParams,
   CreateAssistantRawRequest,
+  ListAssistantFileQuery,
   ListAssistantQuery
 } from './types/assistants.ts'
 import { Function } from './types/function.ts'
@@ -1698,6 +1701,78 @@ export class OpenAI {
       ),
       fileIDs: d.file_ids,
       metadata: d.metadata
+    }))
+  }
+
+  async createAssistantFile(
+    assistantID: string,
+    fileID: string
+  ): Promise<AssistantFile> {
+    const resp: AssistantFileRaw = await this.request({
+      url: `/assistants/${assistantID}/files`,
+      method: 'POST',
+      body: {
+        file_id: fileID
+      }
+    })
+
+    return {
+      id: resp.id,
+      object: resp.object,
+      createdAt: resp.created_at,
+      assistantID: resp.assistant_id
+    }
+  }
+
+  async retrieveAssistantFile(
+    assistantID: string,
+    fileID: string
+  ): Promise<AssistantFile> {
+    const resp: AssistantFileRaw = await this.request({
+      url: `/assistants/${assistantID}/files/${fileID}`,
+      method: 'GET'
+    })
+
+    return {
+      id: resp.id,
+      object: resp.object,
+      createdAt: resp.created_at,
+      assistantID: resp.assistant_id
+    }
+  }
+
+  async deleteAssistantFile(
+    assistantID: string,
+    fileID: string
+  ): Promise<DeleteResponse> {
+    return await this.request<DeleteResponse>({
+      url: `/assistants/${assistantID}/files/${fileID}`,
+      method: 'DELETE'
+    })
+  }
+
+  async listAssistantFiles(
+    assistantID: string,
+    query?: ListAssistantFileQuery
+  ): Promise<AssistantFile[]> {
+    const resp = await this.request<{
+      data: AssistantFileRaw[]
+    }>({
+      url: `/assistants/${assistantID}/files`,
+      method: 'GET',
+      query: {
+        limit: query?.limit?.toString(),
+        after: query?.after,
+        before: query?.before,
+        order: query?.order
+      }
+    })
+
+    return resp.data.map((d) => ({
+      id: d.id,
+      object: d.object,
+      createdAt: d.created_at,
+      assistantID: d.assistant_id
     }))
   }
 }
