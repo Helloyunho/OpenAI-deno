@@ -98,7 +98,13 @@ import {
   ListAssistantFileQuery,
   ListAssistantQuery
 } from './types/assistants.ts'
-import { Function } from './types/function.ts'
+import {
+  CreateThreadParams,
+  CreateThreadRawRequest,
+  Thread,
+  ThreadRaw
+} from './types/threads.ts'
+import { HasMetadata } from './types/metadata.ts'
 
 export class OpenAI {
   _token?: string
@@ -187,7 +193,11 @@ export class OpenAI {
       body = JSON.stringify(body)
     }
 
-    const urlParams = new URLSearchParams(query)
+    const urlParams = new URLSearchParams(
+      Object.fromEntries(
+        Object.entries(query).filter(([_, v]) => v != undefined)
+      ) as Record<string, string>
+    )
     url = `${url}?${urlParams.toString()}`
 
     const resp = await fetch(`${MAIN_URL}${url}`, {
@@ -1774,5 +1784,69 @@ export class OpenAI {
       createdAt: d.created_at,
       assistantID: d.assistant_id
     }))
+  }
+
+  async createThread(params?: CreateThreadParams): Promise<Thread> {
+    const rawRequest: CreateThreadRawRequest = {
+      messages: params?.messages?.map((m) => ({
+        role: m.role,
+        content: m.content,
+        file_ids: m.fileIDs,
+        metadata: m.metadata
+      })),
+      metadata: params?.metadata
+    }
+
+    const resp: ThreadRaw = await this.request({
+      url: `/threads`,
+      method: 'POST',
+      body: { ...rawRequest }
+    })
+
+    return {
+      id: resp.id,
+      object: resp.object,
+      createdAt: resp.created_at,
+      metadata: resp.metadata
+    }
+  }
+
+  async retrieveThread(threadID: string): Promise<Thread> {
+    const resp: ThreadRaw = await this.request({
+      url: `/threads/${threadID}`,
+      method: 'GET'
+    })
+
+    return {
+      id: resp.id,
+      object: resp.object,
+      createdAt: resp.created_at,
+      metadata: resp.metadata
+    }
+  }
+
+  async modifyThread(
+    threadID: string,
+    params?: Partial<HasMetadata>
+  ): Promise<Thread> {
+    const resp: ThreadRaw = await this.request({
+      url: `/threads/${threadID}`,
+      method: 'POST',
+      body: { ...params }
+    })
+
+    return {
+      id: resp.id,
+      object: resp.object,
+      createdAt: resp.created_at,
+      metadata: resp.metadata
+    }
+  }
+
+  async deleteThread(threadID: string): Promise<DeleteResponse> {
+    return await this.request<DeleteResponse>({
+      url: `/threads/${threadID}`,
+      method: 'DELETE'
+    })
   }
 }

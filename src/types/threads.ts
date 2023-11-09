@@ -14,9 +14,12 @@ export interface Thread extends HasMetadata {
 }
 
 export interface CreateThreadRawRequest extends HasMetadata {
-  messages: CreateMessageRawRequest[]
+  messages?: CreateMessageRawRequest[]
 }
 
-export interface CreateThreadRequest extends HasMetadata {
-  messages: CreateMessageParams[]
+export interface CreateThreadParams extends HasMetadata {
+  messages?: (CreateMessageParams & {
+    role: 'user' | string
+    content: string
+  })[]
 }
