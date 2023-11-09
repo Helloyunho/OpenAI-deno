@@ -93,10 +93,10 @@ export interface ModifyAssistantParams extends Partial<CreateAssistantParams> {
 }
 
 export interface ListAssistantQuery {
-  limit: number
-  order: 'desc' | 'asc'
-  after: string
-  before: string
+  limit?: number
+  order?: 'desc' | 'asc'
+  after?: string
+  before?: string
 }
 
 export interface AssistantFileRaw {

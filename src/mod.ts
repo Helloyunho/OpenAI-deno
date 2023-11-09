@@ -92,7 +92,8 @@ import {
   Assistant,
   AssistantRaw,
   CreateAssistantParams,
-  CreateAssistantRawRequest
+  CreateAssistantRawRequest,
+  ListAssistantQuery
 } from './types/assistants.ts'
 import { Function } from './types/function.ts'
 
@@ -134,7 +135,7 @@ export class OpenAI {
     headers?: { [name: string]: string }
     body?: Record<string, unknown> | FormData | string
     raw?: false
-    query?: Record<string, string>
+    query?: Record<string, string | undefined>
   }): Promise<R>
   async request<R>({
     method = 'GET',
@@ -149,7 +150,7 @@ export class OpenAI {
     headers?: { [name: string]: string }
     body?: Record<string, unknown> | FormData | string
     raw?: true
-    query?: Record<string, string>
+    query?: Record<string, string | undefined>
   }): Promise<Blob>
   async request<R>({
     method = 'GET',
@@ -164,7 +165,7 @@ export class OpenAI {
     headers?: { [name: string]: string }
     body?: Record<string, unknown> | FormData | string
     raw?: boolean
-    query?: Record<string, string>
+    query?: Record<string, string | undefined>
   }): Promise<Blob | R> {
     if (this.token === undefined) {
       throw new Error('No token was provided.')
@@ -1567,5 +1568,136 @@ export class OpenAI {
       fileIDs: resp.file_ids,
       metadata: resp.metadata
     }
+  }
+
+  async retrieveAssistant(assistantID: string): Promise<Assistant> {
+    const resp: AssistantRaw = await this.request({
+      url: `/assistants/${assistantID}`,
+      method: 'GET'
+    })
+
+    return {
+      id: resp.id,
+      object: resp.object,
+      createdAt: resp.created_at,
+      name: resp.name,
+      description: resp.description,
+      model: resp.model,
+      instructions: resp.instructions,
+      tools: resp.tools.map((t) =>
+        t.type === 'function'
+          ? {
+              type: t.type,
+              function: t.function
+            }
+          : {
+              type:
+                t.type === 'code_interpreter' ? 'codeInterpreter' : 'retrieval'
+            }
+      ),
+      fileIDs: resp.file_ids,
+      metadata: resp.metadata
+    }
+  }
+
+  async modifyAssistant(
+    assistantID: string,
+    params?: Partial<CreateAssistantParams> & {
+      model?: string
+    }
+  ): Promise<Assistant> {
+    const rawRequest: Partial<CreateAssistantRawRequest> = {
+      model: params?.model,
+      name: params?.name,
+      description: params?.description,
+      instructions: params?.instructions,
+      tools: params?.tools?.map((t) =>
+        t.type === 'function'
+          ? {
+              type: t.type,
+              function: t.function
+            }
+          : {
+              type:
+                t.type === 'codeInterpreter' ? 'code_interpreter' : 'retrieval'
+            }
+      ),
+      file_ids: params?.fileIDs,
+      metadata: params?.metadata
+    }
+
+    const resp: AssistantRaw = await this.request({
+      url: `/assistants/${assistantID}`,
+      method: 'POST',
+      body: { ...rawRequest }
+    })
+
+    return {
+      id: resp.id,
+      object: resp.object,
+      createdAt: resp.created_at,
+      name: resp.name,
+      description: resp.description,
+      model: resp.model,
+      instructions: resp.instructions,
+      tools: resp.tools.map((t) =>
+        t.type === 'function'
+          ? {
+              type: t.type,
+              function: t.function
+            }
+          : {
+              type:
+                t.type === 'code_interpreter' ? 'codeInterpreter' : 'retrieval'
+            }
+      ),
+      fileIDs: resp.file_ids,
+      metadata: resp.metadata
+    }
+  }
+
+  async deleteAssistant(assistantID: string): Promise<DeleteResponse> {
+    return await this.request<DeleteResponse>({
+      url: `/assistants/${assistantID}`,
+      method: 'DELETE'
+    })
+  }
+
+  async listAssistants(query?: ListAssistantQuery): Promise<Assistant[]> {
+    const resp = await this.request<{
+      data: AssistantRaw[]
+    }>({
+      url: `/assistants`,
+      method: 'GET',
+      query: {
+        limit: query?.limit?.toString(),
+        after: query?.after,
+        before: query?.before,
+        order: query?.order
+      }
+    })
+
+    return resp.data.map((d) => ({
+      id: d.id,
+      object: d.object,
+      createdAt: d.created_at,
+      name: d.name,
+      description: d.description,
+      model: d.model,
+      instructions: d.instructions,
+      tools: d.tools.map((t) =>
+        t.type === 'function'
+          ? {
+              type: t.type,
+              function: t.function
+            }
+          : {
+              type:
+                t.type === 'code_interpreter' ? 'codeInterpreter' : 'retrieval'
+            }
+      ),
+      fileIDs: d.file_ids,
+      metadata: d.metadata
+    }))
   }
 }
