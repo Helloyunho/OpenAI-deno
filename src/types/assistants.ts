@@ -1,4 +1,4 @@
-import { Function } from './function.ts'
+import { Function, FunctionRaw } from './function.ts'
 import { HasMetadata } from './metadata.ts'
 
 export interface AssistantRaw extends HasMetadata {
@@ -16,7 +16,10 @@ export interface AssistantRaw extends HasMetadata {
     | {
         type: 'retrieval'
       }
-    | Function
+    | {
+        type: 'function'
+        function: FunctionRaw
+      }
   )[]
   file_ids: string[]
 }
@@ -36,10 +39,12 @@ export interface Assistant extends HasMetadata {
     | {
         type: 'retrieval'
       }
-    | Function
+    | {
+        type: 'function'
+        function: Function
+      }
   )[]
   fileIDs: string[]
-  metadata: Record<string, unknown>
 }
 
 export interface CreateAssistantRawRequest extends HasMetadata {
@@ -54,7 +59,10 @@ export interface CreateAssistantRawRequest extends HasMetadata {
     | {
         type: 'retrieval'
       }
-    | Function
+    | {
+        type: 'function'
+        function: FunctionRaw
+      }
   )[]
   file_ids?: string[]
 }
@@ -70,7 +78,10 @@ export interface CreateAssistantParams extends HasMetadata {
     | {
         type: 'retrieval'
       }
-    | Function
+    | {
+        type: 'function'
+        function: Function
+      }
   )[]
   fileIDs?: string[]
   metadata?: Record<string, unknown>

@@ -88,6 +88,13 @@ import {
   FineTuningJob,
   FineTuningJobRaw
 } from './types/fineTuning.ts'
+import {
+  Assistant,
+  AssistantRaw,
+  CreateAssistantParams,
+  CreateAssistantRawRequest
+} from './types/assistants.ts'
+import { Function } from './types/function.ts'
 
 export class OpenAI {
   _token?: string
@@ -1506,5 +1513,59 @@ export class OpenAI {
     })
 
     return resp
+  }
+
+  async createAssistant(
+    model: string,
+    params?: CreateAssistantParams
+  ): Promise<Assistant> {
+    const rawRequest: CreateAssistantRawRequest = {
+      model,
+      name: params?.name,
+      description: params?.description,
+      instructions: params?.instructions,
+      tools: params?.tools?.map((t) =>
+        t.type === 'function'
+          ? {
+              type: t.type,
+              function: t.function
+            }
+          : {
+              type:
+                t.type === 'codeInterpreter' ? 'code_interpreter' : 'retrieval'
+            }
+      ),
+      file_ids: params?.fileIDs,
+      metadata: params?.metadata
+    }
+
+    const resp: AssistantRaw = await this.request({
+      url: `/assistants`,
+      method: 'POST',
+      body: { ...rawRequest }
+    })
+
+    return {
+      id: resp.id,
+      object: resp.object,
+      createdAt: resp.created_at,
+      name: resp.name,
+      description: resp.description,
+      model: resp.model,
+      instructions: resp.instructions,
+      tools: resp.tools.map((t) =>
+        t.type === 'function'
+          ? {
+              type: t.type,
+              function: t.function
+            }
+          : {
+              type:
+                t.type === 'code_interpreter' ? 'codeInterpreter' : 'retrieval'
+            }
+      ),
+      fileIDs: resp.file_ids,
+      metadata: resp.metadata
+    }
   }
 }
