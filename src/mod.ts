@@ -5,6 +5,8 @@ import {
   AnswerResponse
 } from './types/answer.ts'
 import {
+  CreateSpeechParams,
+  CreateSpeechRawRequest,
   CreateTranscriptionParams,
   CreateTranscriptionRawResponse,
   CreateTranslationParams,
@@ -1476,5 +1478,31 @@ export class OpenAI {
       categories: r.categories,
       categoryScores: r.category_scores
     }))
+  }
+
+  async createSpeech(
+    model: 'tts-1' | 'tts-1-hd' | string,
+    input: string,
+    voice: 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer' | string,
+    params?: CreateSpeechParams
+  ): Promise<Blob> {
+    const rawRequest: CreateSpeechRawRequest = {
+      model: model,
+      input: input,
+      voice: voice,
+      response_format: params?.responseFormat,
+      speed: params?.speed
+    }
+
+    const resp = await this.request({
+      url: '/audio/speech',
+      method: 'POST',
+      body: {
+        ...rawRequest
+      },
+      raw: true
+    })
+
+    return resp
   }
 }
