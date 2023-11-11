@@ -105,6 +105,16 @@ import {
   ThreadRaw
 } from './types/threads.ts'
 import { HasMetadata } from './types/metadata.ts'
+import {
+  CreateMessageParams,
+  CreateMessageRawRequest,
+  ListMessageFileQuery,
+  ListMessageQuery,
+  Message,
+  MessageFile,
+  MessageFileRaw,
+  MessageRaw
+} from './types/messages.ts'
 
 export class OpenAI {
   _token?: string
@@ -1848,5 +1858,302 @@ export class OpenAI {
       url: `/threads/${threadID}`,
       method: 'DELETE'
     })
+  }
+
+  async createMessage(
+    threadID: string,
+    role: 'user' | string,
+    content: string,
+    params?: CreateMessageParams
+  ): Promise<Message> {
+    const rawRequest: CreateMessageRawRequest = {
+      role: role,
+      content: content,
+      file_ids: params?.fileIDs,
+      metadata: params?.metadata
+    }
+
+    const resp: MessageRaw = await this.request({
+      url: `/threads/${threadID}/messages`,
+      method: 'POST',
+      body: { ...rawRequest }
+    })
+
+    return {
+      id: resp.id,
+      object: resp.object,
+      createdAt: resp.created_at,
+      threadID: resp.thread_id,
+      role: resp.role,
+      content: resp.content.map((c) => {
+        if (c.type === 'image_file') {
+          return {
+            type: 'imageFile',
+            fileID: c.image_file.file_id
+          }
+        } else if (c.type === 'text') {
+          return {
+            type: 'text',
+            value: c.text.value,
+            annotations: c.text.annotations.map((a) => {
+              if (a.type === 'file_citation') {
+                return {
+                  type: 'fileCitation',
+                  text: a.text,
+                  fileID: a.file_citation.file_id,
+                  quote: a.file_citation.quote,
+                  startIndex: a.start_index,
+                  endIndex: a.end_index
+                }
+              } else if (a.type === 'file_path') {
+                return {
+                  type: 'filePath',
+                  text: a.text,
+                  fileID: a.file_path.file_id,
+                  startIndex: a.start_index,
+                  endIndex: a.end_index
+                }
+              } else {
+                throw new TypeError(`Unsupported(or unknown) annotation type`)
+              }
+            })
+          }
+        } else {
+          throw new TypeError(`Unsupported(or unknown) content type`)
+        }
+      }),
+      fileIDs: resp.file_ids,
+      metadata: resp.metadata,
+      runID: resp.run_id,
+      assistantID: resp.assistant_id
+    }
+  }
+
+  async retrieveMessage(threadID: string, messageID: string): Promise<Message> {
+    const resp: MessageRaw = await this.request({
+      url: `/threads/${threadID}/messages/${messageID}`,
+      method: 'GET'
+    })
+
+    return {
+      id: resp.id,
+      object: resp.object,
+      createdAt: resp.created_at,
+      threadID: resp.thread_id,
+      role: resp.role,
+      content: resp.content.map((c) => {
+        if (c.type === 'image_file') {
+          return {
+            type: 'imageFile',
+            fileID: c.image_file.file_id
+          }
+        } else if (c.type === 'text') {
+          return {
+            type: 'text',
+            value: c.text.value,
+            annotations: c.text.annotations.map((a) => {
+              if (a.type === 'file_citation') {
+                return {
+                  type: 'fileCitation',
+                  text: a.text,
+                  fileID: a.file_citation.file_id,
+                  quote: a.file_citation.quote,
+                  startIndex: a.start_index,
+                  endIndex: a.end_index
+                }
+              } else if (a.type === 'file_path') {
+                return {
+                  type: 'filePath',
+                  text: a.text,
+                  fileID: a.file_path.file_id,
+                  startIndex: a.start_index,
+                  endIndex: a.end_index
+                }
+              } else {
+                throw new TypeError(`Unsupported(or unknown) annotation type`)
+              }
+            })
+          }
+        } else {
+          throw new TypeError(`Unsupported(or unknown) content type`)
+        }
+      }),
+      fileIDs: resp.file_ids,
+      metadata: resp.metadata,
+      runID: resp.run_id,
+      assistantID: resp.assistant_id
+    }
+  }
+
+  async modifyMessage(
+    threadID: string,
+    messageID: string,
+    params?: HasMetadata
+  ): Promise<Message> {
+    const resp: MessageRaw = await this.request({
+      url: `/threads/${threadID}/messages/${messageID}`,
+      method: 'POST',
+      body: { ...params }
+    })
+
+    return {
+      id: resp.id,
+      object: resp.object,
+      createdAt: resp.created_at,
+      threadID: resp.thread_id,
+      role: resp.role,
+      content: resp.content.map((c) => {
+        if (c.type === 'image_file') {
+          return {
+            type: 'imageFile',
+            fileID: c.image_file.file_id
+          }
+        } else if (c.type === 'text') {
+          return {
+            type: 'text',
+            value: c.text.value,
+            annotations: c.text.annotations.map((a) => {
+              if (a.type === 'file_citation') {
+                return {
+                  type: 'fileCitation',
+                  text: a.text,
+                  fileID: a.file_citation.file_id,
+                  quote: a.file_citation.quote,
+                  startIndex: a.start_index,
+                  endIndex: a.end_index
+                }
+              } else if (a.type === 'file_path') {
+                return {
+                  type: 'filePath',
+                  text: a.text,
+                  fileID: a.file_path.file_id,
+                  startIndex: a.start_index,
+                  endIndex: a.end_index
+                }
+              } else {
+                throw new TypeError(`Unsupported(or unknown) annotation type`)
+              }
+            })
+          }
+        } else {
+          throw new TypeError(`Unsupported(or unknown) content type`)
+        }
+      }),
+      fileIDs: resp.file_ids,
+      metadata: resp.metadata,
+      runID: resp.run_id,
+      assistantID: resp.assistant_id
+    }
+  }
+
+  async listMessages(
+    threadID: string,
+    query?: ListMessageQuery
+  ): Promise<Message[]> {
+    const resp = await this.request<{
+      data: MessageRaw[]
+    }>({
+      url: `/threads/${threadID}/messages`,
+      method: 'GET',
+      query: {
+        limit: query?.limit?.toString(),
+        after: query?.after,
+        before: query?.before,
+        order: query?.order
+      }
+    })
+
+    return resp.data.map((d) => ({
+      id: d.id,
+      object: d.object,
+      createdAt: d.created_at,
+      threadID: d.thread_id,
+      role: d.role,
+      content: d.content.map((c) => {
+        if (c.type === 'image_file') {
+          return {
+            type: 'imageFile',
+            fileID: c.image_file.file_id
+          }
+        } else if (c.type === 'text') {
+          return {
+            type: 'text',
+            value: c.text.value,
+            annotations: c.text.annotations.map((a) => {
+              if (a.type === 'file_citation') {
+                return {
+                  type: 'fileCitation',
+                  text: a.text,
+                  fileID: a.file_citation.file_id,
+                  quote: a.file_citation.quote,
+                  startIndex: a.start_index,
+                  endIndex: a.end_index
+                }
+              } else if (a.type === 'file_path') {
+                return {
+                  type: 'filePath',
+                  text: a.text,
+                  fileID: a.file_path.file_id,
+                  startIndex: a.start_index,
+                  endIndex: a.end_index
+                }
+              } else {
+                throw new TypeError(`Unsupported(or unknown) annotation type`)
+              }
+            })
+          }
+        } else {
+          throw new TypeError(`Unsupported(or unknown) content type`)
+        }
+      }),
+      fileIDs: d.file_ids,
+      metadata: d.metadata,
+      runID: d.run_id,
+      assistantID: d.assistant_id
+    }))
+  }
+
+  async retrieveMessageFile(
+    threadID: string,
+    messageID: string,
+    fileID: string
+  ): Promise<MessageFile> {
+    const resp: MessageFileRaw = await this.request({
+      url: `/threads/${threadID}/messages/${messageID}/files/${fileID}`,
+      method: 'GET'
+    })
+
+    return {
+      id: resp.id,
+      object: resp.object,
+      createdAt: resp.created_at,
+      messageID: resp.message_id
+    }
+  }
+
+  async listMessageFiles(
+    threadID: string,
+    messageID: string,
+    query?: ListMessageFileQuery
+  ): Promise<MessageFile[]> {
+    const resp = await this.request<{
+      data: MessageFileRaw[]
+    }>({
+      url: `/threads/${threadID}/messages/${messageID}/files`,
+      method: 'GET',
+      query: {
+        limit: query?.limit?.toString(),
+        after: query?.after,
+        before: query?.before,
+        order: query?.order
+      }
+    })
+
+    return resp.data.map((d) => ({
+      id: d.id,
+      object: d.object,
+      createdAt: d.created_at,
+      messageID: d.message_id
+    }))
   }
 }

@@ -59,26 +59,24 @@ export interface Message extends HasMetadata {
       }
     | {
         type: 'text'
-        text: {
-          value: string
-          annotations: (
-            | {
-                type: 'fileCitation'
-                text: string
-                fileID: string
-                quote: string
-                startIndex: number
-                endIndex: number
-              }
-            | {
-                type: 'filePath'
-                text: string
-                fileID: string
-                startIndex: number
-                endIndex: number
-              }
-          )[]
-        }
+        value: string
+        annotations: (
+          | {
+              type: 'fileCitation'
+              text: string
+              fileID: string
+              quote: string
+              startIndex: number
+              endIndex: number
+            }
+          | {
+              type: 'filePath'
+              text: string
+              fileID: string
+              startIndex: number
+              endIndex: number
+            }
+        )[]
       }
   )[]
   assistantID: string | null
