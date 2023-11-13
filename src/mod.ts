@@ -615,6 +615,7 @@ export class OpenAI {
    * @param instruction The instruction that tells the model how to edit the prompt.
    * @param params Optional parameters for the API.
    * @returns Edited texts.
+   * @deprecated
    */
   async createEdit(
     model: string,
@@ -1328,6 +1329,7 @@ export class OpenAI {
    * See the [fine-tuning guide](https://platform.openai.com/docs/guides/fine-tuning/creating-training-data) for more details.
    * @param params Optional parameters for the API.
    * @returns The fine-tune job.
+   * @deprecated OpenAI recommends transitioning to the updating fine-tuning API
    */
   async createFineTune(
     trainingFile: OpenAIFile | string,
@@ -1382,6 +1384,7 @@ export class OpenAI {
   /**
    * List your organization's fine-tuning jobs
    * @returns The fine-tune jobs.
+   * @deprecated OpenAI recommends transitioning to the updating fine-tuning API
    */
   async listFineTunes(): Promise<FineTune[]> {
     const resp = await this.request<{
@@ -1418,6 +1421,7 @@ export class OpenAI {
    * [Learn more about Fine-tuning](https://platform.openai.com/docs/guides/fine-tuning)
    * @param fineTuneID The ID of the fine-tune job
    * @returns The fine-tune job.
+   * @deprecated OpenAI recommends transitioning to the updating fine-tuning API
    */
   async retrieveFineTune(fineTuneID: string): Promise<FineTune> {
     const resp = await this.request<FineTuneRaw>({
@@ -1450,6 +1454,7 @@ export class OpenAI {
    * Immediately cancel a fine-tune job.
    * @param fineTuneID The ID of the fine-tune job to cancel
    * @returns The canceled fine-tune job.
+   * @deprecated OpenAI recommends transitioning to the updating fine-tuning API
    */
   async cancelFineTune(fineTuneID: string): Promise<FineTune> {
     const resp = await this.request<FineTuneRaw>({
@@ -1482,6 +1487,7 @@ export class OpenAI {
    * Get fine-grained status updates for a fine-tune job.
    * @param fineTuneID The ID of the fine-tune job to get events for.
    * @returns The fine-tune job's events.
+   * @deprecated OpenAI recommends transitioning to the updating fine-tuning API
    */
   async listFineTuneEvents(fineTuneID: string): Promise<FineTuneEvent[]> {
     const resp = await this.request<{
@@ -1597,7 +1603,10 @@ export class OpenAI {
     const resp: AssistantRaw = await this.request({
       url: `/assistants`,
       method: 'POST',
-      body: { ...rawRequest }
+      body: { ...rawRequest },
+      headers: {
+        'OpenAI-Beta': 'assistants=v1'
+      }
     })
 
     return {
@@ -1632,7 +1641,10 @@ export class OpenAI {
   async retrieveAssistant(assistantID: string): Promise<Assistant> {
     const resp: AssistantRaw = await this.request({
       url: `/assistants/${assistantID}`,
-      method: 'GET'
+      method: 'GET',
+      headers: {
+        'OpenAI-Beta': 'assistants=v1'
+      }
     })
 
     return {
@@ -1700,7 +1712,10 @@ export class OpenAI {
     const resp: AssistantRaw = await this.request({
       url: `/assistants/${assistantID}`,
       method: 'POST',
-      body: { ...rawRequest }
+      body: { ...rawRequest },
+      headers: {
+        'OpenAI-Beta': 'assistants=v1'
+      }
     })
 
     return {
@@ -1735,7 +1750,10 @@ export class OpenAI {
   async deleteAssistant(assistantID: string): Promise<DeleteResponse> {
     return await this.request<DeleteResponse>({
       url: `/assistants/${assistantID}`,
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: {
+        'OpenAI-Beta': 'assistants=v1'
+      }
     })
   }
 
@@ -1755,6 +1773,9 @@ export class OpenAI {
         after: query?.after,
         before: query?.before,
         order: query?.order
+      },
+      headers: {
+        'OpenAI-Beta': 'assistants=v1'
       }
     })
 
@@ -1798,6 +1819,9 @@ export class OpenAI {
       method: 'POST',
       body: {
         file_id: fileID
+      },
+      headers: {
+        'OpenAI-Beta': 'assistants=v1'
       }
     })
 
@@ -1821,7 +1845,10 @@ export class OpenAI {
   ): Promise<AssistantFile> {
     const resp: AssistantFileRaw = await this.request({
       url: `/assistants/${assistantID}/files/${fileID}`,
-      method: 'GET'
+      method: 'GET',
+      headers: {
+        'OpenAI-Beta': 'assistants=v1'
+      }
     })
 
     return {
@@ -1844,7 +1871,10 @@ export class OpenAI {
   ): Promise<DeleteResponse> {
     return await this.request<DeleteResponse>({
       url: `/assistants/${assistantID}/files/${fileID}`,
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: {
+        'OpenAI-Beta': 'assistants=v1'
+      }
     })
   }
 
@@ -1868,6 +1898,9 @@ export class OpenAI {
         after: query?.after,
         before: query?.before,
         order: query?.order
+      },
+      headers: {
+        'OpenAI-Beta': 'assistants=v1'
       }
     })
 
@@ -1898,7 +1931,10 @@ export class OpenAI {
     const resp: ThreadRaw = await this.request({
       url: `/threads`,
       method: 'POST',
-      body: { ...rawRequest }
+      body: { ...rawRequest },
+      headers: {
+        'OpenAI-Beta': 'assistants=v1'
+      }
     })
 
     return {
@@ -1917,7 +1953,10 @@ export class OpenAI {
   async retrieveThread(threadID: string): Promise<Thread> {
     const resp: ThreadRaw = await this.request({
       url: `/threads/${threadID}`,
-      method: 'GET'
+      method: 'GET',
+      headers: {
+        'OpenAI-Beta': 'assistants=v1'
+      }
     })
 
     return {
@@ -1941,7 +1980,10 @@ export class OpenAI {
     const resp: ThreadRaw = await this.request({
       url: `/threads/${threadID}`,
       method: 'POST',
-      body: { ...params }
+      body: { ...params },
+      headers: {
+        'OpenAI-Beta': 'assistants=v1'
+      }
     })
 
     return {
@@ -1960,7 +2002,10 @@ export class OpenAI {
   async deleteThread(threadID: string): Promise<DeleteResponse> {
     return await this.request<DeleteResponse>({
       url: `/threads/${threadID}`,
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: {
+        'OpenAI-Beta': 'assistants=v1'
+      }
     })
   }
 
@@ -1988,7 +2033,10 @@ export class OpenAI {
     const resp: MessageRaw = await this.request({
       url: `/threads/${threadID}/messages`,
       method: 'POST',
-      body: { ...rawRequest }
+      body: { ...rawRequest },
+      headers: {
+        'OpenAI-Beta': 'assistants=v1'
+      }
     })
 
     return {
@@ -2050,7 +2098,10 @@ export class OpenAI {
   async retrieveMessage(threadID: string, messageID: string): Promise<Message> {
     const resp: MessageRaw = await this.request({
       url: `/threads/${threadID}/messages/${messageID}`,
-      method: 'GET'
+      method: 'GET',
+      headers: {
+        'OpenAI-Beta': 'assistants=v1'
+      }
     })
 
     return {
@@ -2118,7 +2169,10 @@ export class OpenAI {
     const resp: MessageRaw = await this.request({
       url: `/threads/${threadID}/messages/${messageID}`,
       method: 'POST',
-      body: { ...params }
+      body: { ...params },
+      headers: {
+        'OpenAI-Beta': 'assistants=v1'
+      }
     })
 
     return {
@@ -2191,6 +2245,9 @@ export class OpenAI {
         after: query?.after,
         before: query?.before,
         order: query?.order
+      },
+      headers: {
+        'OpenAI-Beta': 'assistants=v1'
       }
     })
 
@@ -2258,7 +2315,10 @@ export class OpenAI {
   ): Promise<MessageFile> {
     const resp: MessageFileRaw = await this.request({
       url: `/threads/${threadID}/messages/${messageID}/files/${fileID}`,
-      method: 'GET'
+      method: 'GET',
+      headers: {
+        'OpenAI-Beta': 'assistants=v1'
+      }
     })
 
     return {
@@ -2291,6 +2351,9 @@ export class OpenAI {
         after: query?.after,
         before: query?.before,
         order: query?.order
+      },
+      headers: {
+        'OpenAI-Beta': 'assistants=v1'
       }
     })
 
@@ -2399,7 +2462,10 @@ export class OpenAI {
     const resp: RunRaw = await this.request({
       url: `/threads/${threadID}/runs`,
       method: 'POST',
-      body: { ...rawRequest }
+      body: { ...rawRequest },
+      headers: {
+        'OpenAI-Beta': 'assistants=v1'
+      }
     })
 
     return this.convertRun(resp)
@@ -2414,7 +2480,10 @@ export class OpenAI {
   async retrieveRun(threadID: string, runID: string): Promise<Run> {
     const resp: RunRaw = await this.request({
       url: `/threads/${threadID}/runs/${runID}`,
-      method: 'GET'
+      method: 'GET',
+      headers: {
+        'OpenAI-Beta': 'assistants=v1'
+      }
     })
 
     return this.convertRun(resp)
@@ -2435,7 +2504,10 @@ export class OpenAI {
     const resp: RunRaw = await this.request({
       url: `/threads/${threadID}/runs/${runID}`,
       method: 'POST',
-      body: { ...params }
+      body: { ...params },
+      headers: {
+        'OpenAI-Beta': 'assistants=v1'
+      }
     })
 
     return this.convertRun(resp)
@@ -2458,6 +2530,9 @@ export class OpenAI {
         after: query?.after,
         before: query?.before,
         order: query?.order
+      },
+      headers: {
+        'OpenAI-Beta': 'assistants=v1'
       }
     })
 
@@ -2490,7 +2565,10 @@ export class OpenAI {
     const resp: RunRaw = await this.request({
       url: `/threads/${threadID}/runs/${runID}/submit_tool_outputs`,
       method: 'POST',
-      body: { ...rawRequest }
+      body: { ...rawRequest },
+      headers: {
+        'OpenAI-Beta': 'assistants=v1'
+      }
     })
 
     return this.convertRun(resp)
@@ -2505,7 +2583,10 @@ export class OpenAI {
   async cancelRun(threadID: string, runID: string): Promise<Run> {
     const resp: RunRaw = await this.request({
       url: `/threads/${threadID}/runs/${runID}/cancel`,
-      method: 'POST'
+      method: 'POST',
+      headers: {
+        'OpenAI-Beta': 'assistants=v1'
+      }
     })
 
     return this.convertRun(resp)
@@ -2550,7 +2631,10 @@ export class OpenAI {
     const resp: RunRaw = await this.request({
       url: `/threads/runs`,
       method: 'POST',
-      body: { ...rawRequest }
+      body: { ...rawRequest },
+      headers: {
+        'OpenAI-Beta': 'assistants=v1'
+      }
     })
 
     return this.convertRun(resp)
@@ -2655,7 +2739,10 @@ export class OpenAI {
   ): Promise<RunStep> {
     const resp: RunStepRaw = await this.request({
       url: `/threads/${threadID}/runs/${runID}/steps/${stepID}`,
-      method: 'GET'
+      method: 'GET',
+      headers: {
+        'OpenAI-Beta': 'assistants=v1'
+      }
     })
 
     return this.convertRunStep(resp)
@@ -2683,6 +2770,9 @@ export class OpenAI {
         after: query?.after,
         before: query?.before,
         order: query?.order
+      },
+      headers: {
+        'OpenAI-Beta': 'assistants=v1'
       }
     })
 
