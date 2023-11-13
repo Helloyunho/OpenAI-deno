@@ -115,6 +115,18 @@ import {
   MessageFileRaw,
   MessageRaw
 } from './types/messages.ts'
+import {
+  CreateRunParams,
+  CreateRunRawRequest,
+  ListRunQuery,
+  ListRunStepsQuery,
+  Run,
+  RunRaw,
+  RunStep,
+  RunStepRaw,
+  SubmitToolOutputsToRunRawRequest,
+  ToolCall
+} from './types/runs.ts'
 
 export class OpenAI {
   _token?: string
@@ -2155,5 +2167,290 @@ export class OpenAI {
       createdAt: d.created_at,
       messageID: d.message_id
     }))
+  }
+
+  convertRun(raw: RunRaw): Run {
+    let status: Run['status']
+    if (raw.status === 'in_progress') {
+      status = 'inProgress'
+    } else if (raw.status === 'requires_action') {
+      status = 'requiresAction'
+    } else {
+      status = raw.status
+    }
+
+    return {
+      id: raw.id,
+      object: raw.object,
+      createdAt: raw.created_at,
+      threadID: raw.thread_id,
+      assistantID: raw.assistant_id,
+      status: status,
+      requiredAction:
+        raw.required_action !== null
+          ? {
+              type:
+                raw.required_action.type === 'submit_tool_outputs'
+                  ? 'submitToolOutputs'
+                  : raw.required_action.type,
+              submitToolOutputs: {
+                toolCalls: raw.required_action.submit_tool_outputs.tool_calls
+              }
+            }
+          : null,
+      lastError:
+        raw.last_error !== null
+          ? {
+              message: raw.last_error.message,
+              code:
+                raw.last_error.code === 'server_error'
+                  ? 'serverError'
+                  : raw.last_error.code === 'rate_limit_exceeded'
+                  ? 'rateLimitExceeded'
+                  : raw.last_error.code
+            }
+          : null,
+      expiresAt: raw.expires_at,
+      startedAt: raw.started_at,
+      cancelledAt: raw.cancelled_at,
+      failedAt: raw.failed_at,
+      completedAt: raw.completed_at,
+      model: raw.model,
+      instructions: raw.instructions,
+      tools: raw.tools.map((t) =>
+        t.type === 'function'
+          ? {
+              type: t.type,
+              function: t.function
+            }
+          : {
+              type:
+                t.type === 'code_interpreter' ? 'codeInterpreter' : 'retrieval'
+            }
+      ),
+      fileIDs: raw.file_ids,
+      metadata: raw.metadata
+    }
+  }
+
+  async createRun(
+    threadID: string,
+    assistantID: string,
+    params?: CreateRunParams
+  ): Promise<Run> {
+    const rawRequest: CreateRunRawRequest = {
+      assistant_id: assistantID,
+      model: params?.model,
+      instructions: params?.instructions,
+      tools: params?.tools?.map((t) =>
+        t.type === 'function'
+          ? {
+              type: t.type,
+              function: t.function
+            }
+          : {
+              type:
+                t.type === 'codeInterpreter' ? 'code_interpreter' : 'retrieval'
+            }
+      ),
+      metadata: params?.metadata
+    }
+
+    const resp: RunRaw = await this.request({
+      url: `/threads/${threadID}/runs`,
+      method: 'POST',
+      body: { ...rawRequest }
+    })
+
+    return this.convertRun(resp)
+  }
+
+  async retrieveRun(threadID: string, runID: string): Promise<Run> {
+    const resp: RunRaw = await this.request({
+      url: `/threads/${threadID}/runs/${runID}`,
+      method: 'GET'
+    })
+
+    return this.convertRun(resp)
+  }
+
+  async modifyRun(
+    threadID: string,
+    runID: string,
+    params?: HasMetadata
+  ): Promise<Run> {
+    const resp: RunRaw = await this.request({
+      url: `/threads/${threadID}/runs/${runID}`,
+      method: 'POST',
+      body: { ...params }
+    })
+
+    return this.convertRun(resp)
+  }
+
+  async listRuns(threadID: string, query?: ListRunQuery): Promise<Run[]> {
+    const resp = await this.request<{
+      data: RunRaw[]
+    }>({
+      url: `/threads/${threadID}/runs`,
+      method: 'GET',
+      query: {
+        limit: query?.limit?.toString(),
+        after: query?.after,
+        before: query?.before,
+        order: query?.order
+      }
+    })
+
+    return resp.data.map((d) => this.convertRun(d))
+  }
+
+  async submitToolOutputsToRun(
+    threadID: string,
+    runID: string,
+    toolCalls: ToolCall[]
+  ): Promise<Run> {
+    const rawRequest: SubmitToolOutputsToRunRawRequest = {
+      tool_outputs: toolCalls.map((t) => ({
+        tool_call_id: t.id,
+        output: t.output
+      }))
+    }
+
+    const resp: RunRaw = await this.request({
+      url: `/threads/${threadID}/runs/${runID}/submit_tool_outputs`,
+      method: 'POST',
+      body: { ...rawRequest }
+    })
+
+    return this.convertRun(resp)
+  }
+
+  async cancelRun(threadID: string, runID: string): Promise<Run> {
+    const resp: RunRaw = await this.request({
+      url: `/threads/${threadID}/runs/${runID}/cancel`,
+      method: 'POST'
+    })
+
+    return this.convertRun(resp)
+  }
+
+  convertRunStep(raw: RunStepRaw): RunStep {
+    let type: RunStep['type']
+    if (raw.type === 'message_creation') {
+      type = 'messageCreation'
+    } else if (raw.type === 'tool_calls') {
+      type = 'toolCalls'
+    } else {
+      type = raw.type
+    }
+
+    let status: RunStep['status']
+    if (raw.status === 'in_progress') {
+      status = 'inProgress'
+    } else {
+      status = raw.status
+    }
+
+    let stepDetails: RunStep['stepDetails']
+    if (raw.step_details.type === 'message_creation') {
+      stepDetails = {
+        type: 'messageCreation',
+        messageID: raw.step_details.message_creation.message_id
+      }
+    } else if (raw.step_details.type === 'tool_calls') {
+      stepDetails = {
+        type: 'toolCalls',
+        // @ts-ignore bruh TS dumb
+        toolCalls: raw.step_details.tool_calls.map((t) => {
+          if (t.type === 'code_interpreter') {
+            return {
+              id: t.id,
+              type: 'codeInterpreter',
+              input: t.code_interpreter.input,
+              outputs: t.code_interpreter.outputs
+            }
+          } else if (t.type === 'retrieval') {
+            return {
+              id: t.id,
+              type: 'retrieval',
+              retrieval: t.retrieval
+            }
+          } else if (t.type === 'function') {
+            return {
+              id: t.id,
+              type: 'function',
+              name: t.function.name,
+              arguments: t.function.arguments,
+              output: t.function.output
+            }
+          }
+        })
+      }
+    }
+
+    return {
+      id: raw.id,
+      object: raw.object,
+      createdAt: raw.created_at,
+      assistantID: raw.assistant_id,
+      threadID: raw.thread_id,
+      runID: raw.run_id,
+      type,
+      status,
+      // @ts-ignore bruh TS dumb
+      stepDetails,
+      lastError:
+        raw.last_error !== null
+          ? {
+              message: raw.last_error.message,
+              code:
+                raw.last_error.code === 'server_error'
+                  ? 'serverError'
+                  : raw.last_error.code === 'rate_limit_exceeded'
+                  ? 'rateLimitExceeded'
+                  : raw.last_error.code
+            }
+          : null,
+      expiresAt: raw.expires_at,
+      cancelledAt: raw.cancelled_at,
+      failedAt: raw.failed_at,
+      completedAt: raw.completed_at,
+      metadata: raw.metadata
+    }
+  }
+
+  async retrieveRunStep(
+    threadID: string,
+    runID: string,
+    stepID: string
+  ): Promise<RunStep> {
+    const resp: RunStepRaw = await this.request({
+      url: `/threads/${threadID}/runs/${runID}/steps/${stepID}`,
+      method: 'GET'
+    })
+
+    return this.convertRunStep(resp)
+  }
+
+  async listRunSteps(
+    threadID: string,
+    runID: string,
+    query?: ListRunStepsQuery
+  ): Promise<RunStep[]> {
+    const resp = await this.request<{
+      data: RunStepRaw[]
+    }>({
+      url: `/threads/${threadID}/runs/${runID}/steps`,
+      method: 'GET',
+      query: {
+        limit: query?.limit?.toString(),
+        after: query?.after,
+        before: query?.before,
+        order: query?.order
+      }
+    })
+
+    return resp.data.map((d) => this.convertRunStep(d))
   }
 }
