@@ -118,6 +118,8 @@ import {
 import {
   CreateRunParams,
   CreateRunRawRequest,
+  CreateThreadAndRunParams,
+  CreateThreadAndRunRawRequest,
   ListRunQuery,
   ListRunStepsQuery,
   Run,
@@ -1525,6 +1527,14 @@ export class OpenAI {
     }))
   }
 
+  /**
+   * Generates audio from the input text.
+   * @param model One of the available [TTS models](https://platform.openai.com/docs/models/tts): `tts-1` or `tts-1-hd`
+   * @param input The text to generate audio for. The maximum length is 4096 characters.
+   * @param voice The voice to use when generating the audio. Supported voices are alloy, echo, fable, onyx, nova, and shimmer.
+   * @param params Optional parameters for the API.
+   * @returns The audio file content.
+   */
   async createSpeech(
     model: 'tts-1' | 'tts-1-hd' | string,
     input: string,
@@ -1551,6 +1561,15 @@ export class OpenAI {
     return resp
   }
 
+  /**
+   * Create an assistant with a model and instructions.
+   * @param model ID of the model to use.
+   *
+   *              You can use the [List models](https://platform.openai.com/docs/api-reference/models/list) API to see all of your available models,
+   *              or see our [Model overview](https://platform.openai.com/docs/models/overview) for descriptions of them.
+   * @param params Optional parameters for the API.
+   * @returns An assistant object.
+   */
   async createAssistant(
     model: string,
     params?: CreateAssistantParams
@@ -1605,6 +1624,11 @@ export class OpenAI {
     }
   }
 
+  /**
+   * Retrieves an assistant.
+   * @param assistantID The ID of the assistant to retrieve.
+   * @returns The [assistant](https://platform.openai.com/docs/api-reference/assistants/object) object matching the specified ID.
+   */
   async retrieveAssistant(assistantID: string): Promise<Assistant> {
     const resp: AssistantRaw = await this.request({
       url: `/assistants/${assistantID}`,
@@ -1635,9 +1659,21 @@ export class OpenAI {
     }
   }
 
+  /**
+   * Modifies an assistant.
+   * @param assistantID The ID of the assistant to modify.
+   * @param params Optional parameters for the API.
+   * @returns The modified [assistant](https://platform.openai.com/docs/api-reference/assistants/object) object.
+   */
   async modifyAssistant(
     assistantID: string,
     params?: Partial<CreateAssistantParams> & {
+      /**
+       * ID of the model to use.
+       *
+       * You can use the [List models](https://platform.openai.com/docs/api-reference/models/list) API to see all of your available models,
+       * or see our [Model overview](https://platform.openai.com/docs/models/overview) for descriptions of them.
+       */
       model?: string
     }
   ): Promise<Assistant> {
@@ -1691,6 +1727,11 @@ export class OpenAI {
     }
   }
 
+  /**
+   * Delete an assistant.
+   * @param assistantID The ID of the assistant to delete.
+   * @returns Deletion status
+   */
   async deleteAssistant(assistantID: string): Promise<DeleteResponse> {
     return await this.request<DeleteResponse>({
       url: `/assistants/${assistantID}`,
@@ -1698,6 +1739,11 @@ export class OpenAI {
     })
   }
 
+  /**
+   * Returns a list of assistants.
+   * @param query Optional query for the API.
+   * @returns A list of [assistant](https://platform.openai.com/docs/api-reference/assistants/object) objects.
+   */
   async listAssistants(query?: ListAssistantQuery): Promise<Assistant[]> {
     const resp = await this.request<{
       data: AssistantRaw[]
@@ -1736,6 +1782,13 @@ export class OpenAI {
     }))
   }
 
+  /**
+   * Create an assistant file by attaching a [File](https://platform.openai.com/docs/api-reference/files) to an [assistant](https://platform.openai.com/docs/api-reference/assistants).
+   * @param assistantID The ID of the assistant for which to create a File.
+   * @param fileID A [File](https://platform.openai.com/docs/api-reference/files) ID (with `purpose="assistants"`) that the assistant should use.
+   *               Useful for tools like `retrieval` and `code_interpreter` that can access files.
+   * @returns An [assistant file](https://platform.openai.com/docs/api-reference/assistants/file-object) object.
+   */
   async createAssistantFile(
     assistantID: string,
     fileID: string
@@ -1756,6 +1809,12 @@ export class OpenAI {
     }
   }
 
+  /**
+   * Retrieves an AssistantFile.
+   * @param assistantID The ID of the assistant who the file belongs to.
+   * @param fileID The ID of the file we're getting.
+   * @returns The [assistant file](https://platform.openai.com/docs/api-reference/assistants/file-object) object matching the specified ID.
+   */
   async retrieveAssistantFile(
     assistantID: string,
     fileID: string
@@ -1773,6 +1832,12 @@ export class OpenAI {
     }
   }
 
+  /**
+   * Delete an assistant file.
+   * @param assistantID The ID of the assistant that the file belongs to.
+   * @param fileID The ID of the file to delete.
+   * @returns Deletion status
+   */
   async deleteAssistantFile(
     assistantID: string,
     fileID: string
@@ -1783,6 +1848,12 @@ export class OpenAI {
     })
   }
 
+  /**
+   * Returns a list of assistant files.
+   * @param assistantID The ID of the assistant the file belongs to.
+   * @param query Optional parameters for the API.
+   * @returns A list of [assistant file](https://platform.openai.com/docs/api-reference/assistants/file-object) objects.
+   */
   async listAssistantFiles(
     assistantID: string,
     query?: ListAssistantFileQuery
@@ -1808,6 +1879,11 @@ export class OpenAI {
     }))
   }
 
+  /**
+   * Create a thread.
+   * @param params Optional parameters for the API.
+   * @returns A [thread](https://platform.openai.com/docs/api-reference/threads) object.
+   */
   async createThread(params?: CreateThreadParams): Promise<Thread> {
     const rawRequest: CreateThreadRawRequest = {
       messages: params?.messages?.map((m) => ({
@@ -1833,6 +1909,11 @@ export class OpenAI {
     }
   }
 
+  /**
+   * Retrieves a thread.
+   * @param threadID The ID of the thread to retrieve.
+   * @returns The [thread](https://platform.openai.com/docs/api-reference/threads/object) object matching the specified ID.
+   */
   async retrieveThread(threadID: string): Promise<Thread> {
     const resp: ThreadRaw = await this.request({
       url: `/threads/${threadID}`,
@@ -1847,6 +1928,12 @@ export class OpenAI {
     }
   }
 
+  /**
+   * Modifies a thread.
+   * @param threadID The ID of the thread to modify. Only the `metadata` can be modified.
+   * @param params Optional parameters for the API.
+   * @returns The modified [thread](https://platform.openai.com/docs/api-reference/threads/object) object matching the specified ID.
+   */
   async modifyThread(
     threadID: string,
     params?: Partial<HasMetadata>
@@ -1865,6 +1952,11 @@ export class OpenAI {
     }
   }
 
+  /**
+   * Delete a thread.
+   * @param threadID The ID of the thread to delete.
+   * @returns Deletion status
+   */
   async deleteThread(threadID: string): Promise<DeleteResponse> {
     return await this.request<DeleteResponse>({
       url: `/threads/${threadID}`,
@@ -1872,6 +1964,14 @@ export class OpenAI {
     })
   }
 
+  /**
+   * Create a message.
+   * @param threadID The ID of the [thread](https://platform.openai.com/docs/api-reference/threads) to create a message for.
+   * @param role The role of the entity that is creating the message. Currently only `user` is supported.
+   * @param content The content of the message.
+   * @param params Optional parameters for the API.
+   * @returns A [message](https://platform.openai.com/docs/api-reference/messages/object) object.
+   */
   async createMessage(
     threadID: string,
     role: 'user' | string,
@@ -1941,6 +2041,12 @@ export class OpenAI {
     }
   }
 
+  /**
+   * Retrieve a message.
+   * @param threadID The ID of the [thread](https://platform.openai.com/docs/api-reference/threads) to which this message belongs.
+   * @param messageID The ID of the message to retrieve.
+   * @returns The [message](https://platform.openai.com/docs/api-reference/threads/messages/object) object matching the specified ID.
+   */
   async retrieveMessage(threadID: string, messageID: string): Promise<Message> {
     const resp: MessageRaw = await this.request({
       url: `/threads/${threadID}/messages/${messageID}`,
@@ -1997,6 +2103,13 @@ export class OpenAI {
     }
   }
 
+  /**
+   * Modifies a message.
+   * @param threadID The ID of the thread to which this message belongs.
+   * @param messageID The ID of the message to modify.
+   * @param params Optional parameters for the API.
+   * @returns The modified [message](https://platform.openai.com/docs/api-reference/threads/messages/object) object.
+   */
   async modifyMessage(
     threadID: string,
     messageID: string,
@@ -2058,6 +2171,12 @@ export class OpenAI {
     }
   }
 
+  /**
+   * Returns a list of messages for a given thread.
+   * @param threadID The ID of the [thread](https://platform.openai.com/docs/api-reference/threads) the messages belong to.
+   * @param query Optional query for the API.
+   * @returns A list of [message](https://platform.openai.com/docs/api-reference/messages) objects.
+   */
   async listMessages(
     threadID: string,
     query?: ListMessageQuery
@@ -2125,6 +2244,13 @@ export class OpenAI {
     }))
   }
 
+  /**
+   * Retrieves a message file.
+   * @param threadID The ID of the thread to which the message and File belong.
+   * @param messageID The ID of the message the file belongs to.
+   * @param fileID The ID of the file being retrieved.
+   * @returns The [message file](https://platform.openai.com/docs/api-reference/messages/file-object) object.
+   */
   async retrieveMessageFile(
     threadID: string,
     messageID: string,
@@ -2143,6 +2269,13 @@ export class OpenAI {
     }
   }
 
+  /**
+   * Returns a list of message files.
+   * @param threadID The ID of the thread that the message and files belong to.
+   * @param messageID The ID of the message that the files belongs to.
+   * @param query Optional query for the API.
+   * @returns A list of [message file](https://platform.openai.com/docs/api-reference/messages/file-object) objects.
+   */
   async listMessageFiles(
     threadID: string,
     messageID: string,
@@ -2233,6 +2366,13 @@ export class OpenAI {
     }
   }
 
+  /**
+   * Create a run.
+   * @param threadID The ID of the thread to run.
+   * @param assistantID The ID of the [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to execute this run.
+   * @param params Optional parameters for the API.
+   * @returns A [run](https://platform.openai.com/docs/api-reference/runs/object) object.
+   */
   async createRun(
     threadID: string,
     assistantID: string,
@@ -2265,6 +2405,12 @@ export class OpenAI {
     return this.convertRun(resp)
   }
 
+  /**
+   * Retrieves a run.
+   * @param threadID The ID of the [thread](https://platform.openai.com/docs/api-reference/threads) that was run.
+   * @param runID The ID of the run to retrieve.
+   * @returns The [run](https://platform.openai.com/docs/api-reference/runs/object) object matching the specified ID.
+   */
   async retrieveRun(threadID: string, runID: string): Promise<Run> {
     const resp: RunRaw = await this.request({
       url: `/threads/${threadID}/runs/${runID}`,
@@ -2274,6 +2420,13 @@ export class OpenAI {
     return this.convertRun(resp)
   }
 
+  /**
+   * Modifies a run.
+   * @param threadID The ID of the [thread](https://platform.openai.com/docs/api-reference/threads) that was run.
+   * @param runID The ID of the run to modify.
+   * @param params Optional parameters for the API.
+   * @returns The modified [run](https://platform.openai.com/docs/api-reference/runs/object) object matching the specified ID.
+   */
   async modifyRun(
     threadID: string,
     runID: string,
@@ -2288,6 +2441,12 @@ export class OpenAI {
     return this.convertRun(resp)
   }
 
+  /**
+   * Returns a list of runs belonging to a thread.
+   * @param threadID The ID of the thread the run belongs to.
+   * @param query Optional query for the API.
+   * @returns A list of [run](https://platform.openai.com/docs/api-reference/runs/object) objects.
+   */
   async listRuns(threadID: string, query?: ListRunQuery): Promise<Run[]> {
     const resp = await this.request<{
       data: RunRaw[]
@@ -2305,6 +2464,17 @@ export class OpenAI {
     return resp.data.map((d) => this.convertRun(d))
   }
 
+  /**
+   * When a run has the `status: "requiresAction"` and `requiredAction.type` is `submitToolOutputs`,
+   * this endpoint can be used to submit the outputs from the tool calls once they're all completed.
+   *
+   * All outputs must be submitted in a single request.
+   *
+   * @param threadID The ID of the [thread](https://platform.openai.com/docs/api-reference/threads) to which this run belongs.
+   * @param runID The ID of the run that requires the tool output submission.
+   * @param toolCalls A list of tools for which the outputs are being submitted.
+   * @returns The modified [run](https://platform.openai.com/docs/api-reference/runs/object) object matching the specified ID.
+   */
   async submitToolOutputsToRun(
     threadID: string,
     runID: string,
@@ -2326,10 +2496,61 @@ export class OpenAI {
     return this.convertRun(resp)
   }
 
+  /**
+   * Cancels a run that is `inProgress`.
+   * @param threadID The ID of the thread to which this run belongs.
+   * @param runID The ID of the run to cancel.
+   * @returns The modified [run](https://platform.openai.com/docs/api-reference/runs/object) object matching the specified ID.
+   */
   async cancelRun(threadID: string, runID: string): Promise<Run> {
     const resp: RunRaw = await this.request({
       url: `/threads/${threadID}/runs/${runID}/cancel`,
       method: 'POST'
+    })
+
+    return this.convertRun(resp)
+  }
+
+  /**
+   * A [run](https://platform.openai.com/docs/api-reference/runs/object) object.
+   * @param assistantID The ID of the [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to execute this run.
+   * @param params Optional parameters for the API.
+   * @returns Create a thread and run it in one request.
+   */
+  async createThreadAndRun(
+    assistantID: string,
+    params?: CreateThreadAndRunParams
+  ): Promise<Run> {
+    const rawRequest: CreateThreadAndRunRawRequest = {
+      assistant_id: assistantID,
+      model: params?.model,
+      instructions: params?.instructions,
+      tools: params?.tools?.map((t) =>
+        t.type === 'function'
+          ? {
+              type: t.type,
+              function: t.function
+            }
+          : {
+              type:
+                t.type === 'codeInterpreter' ? 'code_interpreter' : 'retrieval'
+            }
+      ),
+      thread: {
+        messages: params?.thread?.messages?.map((m) => ({
+          role: m.role,
+          content: m.content,
+          file_ids: m.fileIDs,
+          metadata: m.metadata
+        }))
+      },
+      metadata: params?.metadata
+    }
+
+    const resp: RunRaw = await this.request({
+      url: `/threads/runs`,
+      method: 'POST',
+      body: { ...rawRequest }
     })
 
     return this.convertRun(resp)
@@ -2420,6 +2641,13 @@ export class OpenAI {
     }
   }
 
+  /**
+   * Retrieves a run step.
+   * @param threadID The ID of the thread to which the run and run step belongs.
+   * @param runID The ID of the run to which the run step belongs.
+   * @param stepID The ID of the run step to retrieve.
+   * @returns The [run step](https://platform.openai.com/docs/api-reference/runs/step-object) object matching the specified ID.
+   */
   async retrieveRunStep(
     threadID: string,
     runID: string,
@@ -2433,6 +2661,13 @@ export class OpenAI {
     return this.convertRunStep(resp)
   }
 
+  /**
+   * Returns a list of run steps belonging to a run.
+   * @param threadID The ID of the thread the run and run steps belong to.
+   * @param runID The ID of the run the run steps belong to.
+   * @param query Optional query for the API.
+   * @returns A list of [run step](https://platform.openai.com/docs/api-reference/runs/step-object) objects.
+   */
   async listRunSteps(
     threadID: string,
     runID: string,
