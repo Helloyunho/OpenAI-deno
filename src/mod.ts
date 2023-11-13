@@ -11,7 +11,8 @@ import {
   CreateTranscriptionRawResponse,
   CreateTranslationParams,
   CreateTranslationRawResponse,
-  CreateTranslationResponse
+  CreateTranslationResponse,
+  CreateTranscriptionResponse
 } from './types/audio.ts'
 import {
   ChatFormat,
@@ -79,7 +80,6 @@ import {
 } from './types/search.ts'
 import { MAIN_URL } from './types/url.ts'
 import { basename } from './deps.ts'
-import { CreateTranscriptionResponse } from '../mod.ts'
 import {
   CreateFineTuningJobParams,
   CreateFineTuningJobRawRequest,
