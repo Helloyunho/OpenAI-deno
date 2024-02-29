@@ -41,8 +41,8 @@ export interface MessageRaw extends HasMetadata {
         }
       }
   )[]
-  assistant_id: string | null
-  run_id: string | null
+  assistant_id?: string | null
+  run_id?: string | null
   file_ids: string[]
 }
 
@@ -121,11 +121,11 @@ export interface Message extends HasMetadata {
   /**
    * If applicable, the ID of the [assistant](https://platform.openai.com/docs/api-reference/assistants) that authored this message.
    */
-  assistantID: string | null
+  assistantID?: string | null
   /**
    * If applicable, the ID of the run associated with the authoring of this message.
    */
-  runID: string | null
+  runID?: string | null
   /**
    * A list of [file](https://platform.openai.com/docs/api-reference/files) IDs that the assistant should use.
    *

@@ -156,12 +156,12 @@ export class OpenAI {
   }
 
   async request<R>({
-    method = 'GET',
+    method,
     url,
-    headers = {},
+    headers,
     body,
-    raw = false,
-    query = {}
+    raw,
+    query
   }: {
     method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
     url: string
@@ -171,12 +171,12 @@ export class OpenAI {
     query?: Record<string, string | undefined>
   }): Promise<R>
   async request<R>({
-    method = 'GET',
+    method,
     url,
-    headers = {},
+    headers,
     body,
     raw,
-    query = {}
+    query
   }: {
     method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
     url: string
@@ -2383,7 +2383,7 @@ export class OpenAI {
       assistantID: raw.assistant_id,
       status: status,
       requiredAction:
-        raw.required_action !== null
+        raw.required_action !== null && raw.required_action !== undefined
           ? {
               type:
                 raw.required_action.type === 'submit_tool_outputs'
@@ -2395,7 +2395,7 @@ export class OpenAI {
             }
           : null,
       lastError:
-        raw.last_error !== null
+        raw.last_error !== null && raw.last_error !== undefined
           ? {
               message: raw.last_error.message,
               code:
@@ -2706,7 +2706,7 @@ export class OpenAI {
       // @ts-ignore bruh TS dumb
       stepDetails,
       lastError:
-        raw.last_error !== null
+        raw.last_error !== null && raw.last_error !== undefined
           ? {
               message: raw.last_error.message,
               code:

@@ -5,10 +5,10 @@ export interface AssistantRaw extends HasMetadata {
   id: string
   object: 'assistant'
   created_at: number
-  name: string | null
-  description: string | null
+  name?: string | null
+  description?: string | null
   model: string
-  instructions: string | null
+  instructions?: string | null
   tools: (
     | {
         type: 'code_interpreter' // maybe in the future they add more properties to this object
@@ -40,22 +40,22 @@ export interface Assistant extends HasMetadata {
   /**
    * The name of the assistant. The maximum length is 256 characters.
    */
-  name: string | null
+  name?: string | null
   /**
    * The description of the assistant. The maximum length is 512 characters.
    */
-  description: string | null
+  description?: string | null
   /**
    * ID of the model to use.
    *
    * You can use the [List models](https://platform.openai.com/docs/api-reference/models/list) API to see all of your available models,
    * or see our [Model overview](https://platform.openai.com/docs/models/overview) for descriptions of them.
    */
-  model: string
+  model?: string
   /**
    * The system instructions that the assistant uses. The maximum length is 32768 characters.
    */
-  instructions: string | null
+  instructions?: string | null
   /**
    * A list of tool enabled on the assistant.
    *

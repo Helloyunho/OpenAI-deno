@@ -1,0 +1,5 @@
+{
+    "name": "@helloyunho/openai-deno",
+    "version": "0.9.8",
+    "exports": "./mod.ts"
+}

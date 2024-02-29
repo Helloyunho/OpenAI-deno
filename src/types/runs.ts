@@ -17,7 +17,7 @@ export interface RunRaw extends HasMetadata {
     | 'failed'
     | 'completed'
     | 'expired'
-  required_action: {
+  required_action?: {
     type: 'submit_tool_outputs' | string
     submit_tool_outputs: {
       tool_calls: {
@@ -30,15 +30,15 @@ export interface RunRaw extends HasMetadata {
       }[]
     }
   } | null
-  last_error: {
+  last_error?: {
     code: 'server_error' | 'rate_limit_exceeded' | string
     message: string
   } | null
   expires_at: number
-  started_at: number | null
-  cancelled_at: number | null
-  failed_at: number | null
-  completed_at: number | null
+  started_at?: number | null
+  cancelled_at?: number | null
+  failed_at?: number | null
+  completed_at?: number | null
   model: string
   instructions: string
   tools: (
@@ -92,7 +92,7 @@ export interface Run extends HasMetadata {
   /**
    * Details on the action required to continue the run. Will be `null` if no action is required.
    */
-  requiredAction: {
+  requiredAction?: {
     /**
      * For now, this is always `submit_tool_outputs`.
      */
@@ -134,7 +134,7 @@ export interface Run extends HasMetadata {
   /**
    * The last error associated with this run. Will be `null` if there are no errors.
    */
-  lastError: {
+  lastError?: {
     /**
      * One of `server_error` or `rate_limit_exceeded`.
      */
@@ -151,19 +151,19 @@ export interface Run extends HasMetadata {
   /**
    * The Unix timestamp (in seconds) for when the run was started.
    */
-  startedAt: number | null
+  startedAt?: number | null
   /**
    * The Unix timestamp (in seconds) for when the run was cancelled.
    */
-  cancelledAt: number | null
+  cancelledAt?: number | null
   /**
    * The Unix timestamp (in seconds) for when the run failed.
    */
-  failedAt: number | null
+  failedAt?: number | null
   /**
    * The Unix timestamp (in seconds) for when the run was completed.
    */
-  completedAt: number | null
+  completedAt?: number | null
   /**
    * The model that the [assistant](https://platform.openai.com/docs/api-reference/assistants) used for this run.
    */
@@ -348,19 +348,19 @@ export interface RunStepRaw extends HasMetadata {
               function: {
                 name: string
                 arguments: string
-                output: string | null
+                output?: string | null
               }
             }
         )[]
       }
-  last_error: {
+  last_error?: {
     code: 'server_error' | 'rate_limit_exceeded' | string
     message: string
   } | null
-  expires_at: number | null
-  cancelled_at: number | null
-  failed_at: number | null
-  completed_at: number | null
+  expires_at?: number | null
+  cancelled_at?: number | null
+  failed_at?: number | null
+  completed_at?: number | null
 }
 
 export interface RunStep extends HasMetadata {
@@ -477,14 +477,14 @@ export interface RunStep extends HasMetadata {
               /**
                * The output of the function. This will be `null` if the outputs have not been [submitted](https://platform.openai.com/docs/api-reference/runs/submitToolOutputs) yet.
                */
-              output: string | null
+              output?: string | null
             }
         )[]
       }
   /**
    * The last error associated with this run step. Will be `null` if there are no errors.
    */
-  lastError: {
+  lastError?: {
     /**
      * One of `serverError` or `rateLimitExceeded`.
      */
@@ -497,19 +497,19 @@ export interface RunStep extends HasMetadata {
   /**
    * The Unix timestamp (in seconds) for when the run step expired. A step is considered expired if the parent run is expired.
    */
-  expiresAt: number | null
+  expiresAt?: number | null
   /**
    * The Unix timestamp (in seconds) for when the run step was cancelled.
    */
-  cancelledAt: number | null
+  cancelledAt?: number | null
   /**
    * The Unix timestamp (in seconds) for when the run step failed.
    */
-  failedAt: number | null
+  failedAt?: number | null
   /**
    * The Unix timestamp (in seconds) for when the run step completed.
    */
-  completedAt: number | null
+  completedAt?: number | null
 }
 
 export type ListRunStepsQuery = ListRunQuery
